@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<StartupObject>EightLeggedEssay.Program</StartupObject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.42" />
+		<PackageReference Include="Markdig.Signed" Version="0.30.2" />
+		<PackageReference Include="Microsoft.PowerShell.SDK" Version="7.2.4" />
+		<PackageReference Include="Scriban" Version="5.4.6" />
+	</ItemGroup>
+
+
+	<Target Name="CopyModuleDefault" Condition="true">
+		<ItemGroup>
+			<EleModuleSourceFiles Include="../EightLeggedEssayModule/**/*" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(EleModuleSourceFiles)" DestinationFolder="$(OutDir)/EightLeggedEssayModule/" SkipUnchangedFiles="true" />
+	</Target>
+
+	<Target Name="CopyModule" AfterTargets="AfterBuild">
+		<ItemGroup>
+			<EleModuleSourceFiles Include="../EightLeggedEssayModule/**/*" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(EleModuleSourceFiles)" DestinationFolder="$(OutDir)/EightLeggedEssayModule/" SkipUnchangedFiles="true" />
+	</Target>
+
+
+	<Target Name="CopyModuleOnPublish" AfterTargets="Publish">
+		<ItemGroup>
+			<EleModuleSourceFiles Include="../EightLeggedEssayModule/**/*" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(EleModuleSourceFiles)" DestinationFolder="$(PublishDir)/EightLeggedEssayModule/" SkipUnchangedFiles="true" />
+	</Target>
+
+
+</Project>
