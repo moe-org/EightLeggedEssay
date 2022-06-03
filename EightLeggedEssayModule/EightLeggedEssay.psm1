@@ -64,9 +64,9 @@ function Compile-MarkdownPoster{
     [OutputType([EightLeggedEssay.Poster])]
     Param([System.IO.FileInfo]$SourcePath,[System.IO.FileInfo]$OutputPath,[switch]$NoIncrementalCompilation,[switch]$EnableAdvancedExpansion)
     
-    # 检查访问时间
-    if((Test-Path $OutputPath) -and ($SourcePath.LastWriteTime -gt $OutputPath.LastWriteTime) -and -not $NoIncrementalCompilation.IsPresent){
-        # 不需要再次编译，直接返回
+    # 增量编译检查
+    # 输出文件存在，源文件修改时间早于输出文件时间，开启增量编译
+    if((Test-Path $OutputPath) -and ($SourcePath.LastWriteTime.CompareTo($OutputPath.LastWriteTime) -le 0) -and -not $NoIncrementalCompilation.IsPresent){
         return [EightLeggedEssay.Poster]::Parse(([System.IO.File]::ReadAllBytes(($OutputPath.FullName))))
     }
 

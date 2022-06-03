@@ -35,8 +35,14 @@ namespace EightLeggedEssay
             Console.WriteLine("\t--system path  :set the path of EightLeggedEssay system module");
             Console.WriteLine("\t--repl         :entry the repl mode");
             Console.WriteLine("\t--help         :print help then exit with success");
+            Console.WriteLine("\t--debug        :entry debug mode");
             Console.WriteLine("\t--new    path  :create a new site in path then exit");
         }
+
+        /// <summary>
+        /// 是否处在debug模式。这个值在程序正式开始运行后应该不变
+        /// </summary>
+        public static bool DebugMode { get; private set; } = false;
 
         /// <summary>
         /// 服务器地址，null代表不启动服务器
@@ -76,6 +82,10 @@ namespace EightLeggedEssay
                 else if (arg == "--repl")
                 {
                     repl = true;
+                }
+                else if (arg == "--debug")
+                {
+                    DebugMode = true;
                 }
                 else if (arg == "--server")
                 {

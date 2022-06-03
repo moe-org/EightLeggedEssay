@@ -15,15 +15,6 @@
 		<PackageReference Include="Scriban" Version="5.4.6" />
 	</ItemGroup>
 
-
-	<Target Name="CopyModuleDefault" Condition="true">
-		<ItemGroup>
-			<EleModuleSourceFiles Include="../EightLeggedEssayModule/**/*" />
-		</ItemGroup>
-
-		<Copy SourceFiles="@(EleModuleSourceFiles)" DestinationFolder="$(OutDir)/EightLeggedEssayModule/" SkipUnchangedFiles="true" />
-	</Target>
-
 	<Target Name="CopyModule" AfterTargets="AfterBuild">
 		<ItemGroup>
 			<EleModuleSourceFiles Include="../EightLeggedEssayModule/**/*" />

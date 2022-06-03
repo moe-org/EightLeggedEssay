@@ -73,7 +73,7 @@ namespace EightLeggedEssay
         /// <summary>
         /// Text的弱引用版本。如果文章输出到文件系统则会启用这个字段，在引用失效的时候将会从文件系统读取。
         /// </summary>
-        private WeakReference<string>? WeakText = null!;
+        private readonly WeakReference<string?> WeakText = new(null);
 
         /// <summary>
         /// Text的强引用版本。这个字段用于不输出到文件系统的文章使用。
@@ -96,7 +96,7 @@ namespace EightLeggedEssay
                 }
                 else
                 {
-                    if (WeakText != null && WeakText.TryGetTarget(out string? target))
+                    if (WeakText.TryGetTarget(out string? target))
                     {
                         return target;
                     }
@@ -106,14 +106,7 @@ namespace EightLeggedEssay
                         target = File.ReadAllText(CompiledPath
                             ?? throw new InvalidOperationException("try to load memory poster"));
 
-                        if (WeakText != null)
-                        {
-                            WeakText?.SetTarget(target);
-                        }
-                        else
-                        {
-                            WeakText = new(target);
-                        }
+                        WeakText.SetTarget(target);
 
                         return target;
                     }
@@ -169,7 +162,7 @@ namespace EightLeggedEssay
             // 文章放在文件系统当中
             else
             {
-                poster.WeakText = new(text);
+                poster.WeakText.SetTarget(text);
 
                 // 写入文件系统
                 PoasterHeader head = new()
@@ -237,7 +230,7 @@ namespace EightLeggedEssay
 
             string text = Encoding.UTF8.GetString(buf);
             // 解析
-            var h = JsonSerializer.Deserialize<PoasterHeader>(text) ?? throw new JsonException("empty json");
+            var h = JsonSerializer.Deserialize<PoasterHeader>(head) ?? throw new JsonException("empty json");
 
             var p = new Poster()
             {

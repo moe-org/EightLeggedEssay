@@ -249,6 +249,14 @@ namespace EightLeggedEssay
                         VerboseRecord verbose = ((PSDataCollection<VerboseRecord>)sender!)[args.Index];
                         Printer.PutLine("{0}:{1}", engine.EngineName, verbose.ToString());
                     };
+                    pwsh.Streams.Debug.DataAdded += (sender, args) =>
+                    {
+                        if (Program.DebugMode)
+                        {
+                            DebugRecord debug = ((PSDataCollection<DebugRecord>)sender!)[args.Index];
+                            Printer.PutLine("{0}:{1}", engine.EngineName, debug.Message);
+                        }
+                    };
                 }
             }
             else
