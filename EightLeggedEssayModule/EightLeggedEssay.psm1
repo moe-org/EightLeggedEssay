@@ -1,88 +1,6 @@
 
-<# 
-    .SYNOPSIS
-    开启一个多线程任务
-
-    .Parameter ScriptBlock
-    每个线程要执行脚本块
-
-    .Parameter PassedVariable
-    每个线程从主线程那里获取到的变量
-
-    .Example
-    $manager = New-ThreadJobManager -Count 2 "MyThreadJobs"
-
-    Start-ThreadJob -Manager $manager -ScriptBlock { Write-Host $PassedVariable } -PassedVariable "Hello World"
-
-    Wait-ThreadJob $manager
-    # 会输出两次:Hello World
-#>
-function Start-ThreadJob{
-    Param(
-        [Parameter(Mandatory=$true)]
-        [EightLeggedEssay.ThreadWorker.WorkerManager]
-        $Manager,
-        
-        [Parameter(Mandatory=$true)]
-        [ScriptBlock]
-        $ScriptBlock,
-
-        [Parameter(Mandatory=$false)]
-        [object]
-        $PassedVariable = $null)
-
-    $strs = [System.Text.StringBuilder]::new()
-    $stacks = [object[]](Get-PSCallstack)
-
-    foreach($item in $stacks){
-        $strs.Append($item.ToString())
-        $strs.Append("`n")
-    }
-
-    Start-PriThreadJob -Manager $Manager -ScriptBlock $ScriptBlock -CallStack ($strs.ToString()) -PassedVariable $PassedVariable
-}
-
-
-<# 
-    .SYNOPSIS
-    一个辅助函数来一次性从多个线程执行脚本块并获取结果
-
-    .Parameter ScriptBlock
-    每个线程要执行的脚本块
-
-    .Parameter PassedVariable
-    每个线程的脚本块可以获取到的变量
-
-    .Parameter Count
-    有多少线程可供使用
-
-    .Example
-    Invoke-ParallelScriptBlock -Count 2 -ScriptBlock {Write-Host $PassedVariable} $PassedVariable "Hello World"
-    # 将会输出两次:Hello World
-#>
-function Invoke-ParallelScriptBlock{
-    [OutputType([object[]])]
-    Param(
-        # 使用0将会使用所有cpu
-        # 见C#的Start-PriThreadJob实现
-        [Parameter(Mandatory=$false)]
-        [long]
-        $Count = 0,
-
-        [Parameter(Mandatory=$true)]
-        [ScriptBlock]
-        $ScriptBlock,
-
-        [Parameter(Mandatory=$false)]
-        [object]
-        $PassedVariable = $null)
-
-    $manager = New-ThreadJobManager -Count $Count "ParallelScriptBlock"
-
-    Start-ThreadJob -Manager $manager -ScriptBlock $ScriptBlock -PassedVariable $PassedVariable
-   
-    return Wait-ThreadJob $manager
-}
+Import-Module "$PSScriptRoot/Thread.ps1"
+Import-Module "$PSScriptRoot/Utility.ps1"
 
 <#
     .SYNOPSIS
@@ -148,47 +66,6 @@ function Convert-MarkdownPoster{
         $parsed.Head.Attributes,
         $SourcePath.FullName,
         $OutputPath.FullName)
-}
-
-<#
-    .SYNOPSIS 
-    URL转换
-
-    .Parameter RootUrl
-    顶级URL，输出将会基于此URL进行输出。默认是(Get-EleVariable -Name RootUrl)的结果
-
-    .Parameter RelativeTo
-    顶级目录
-
-    .Parameter Target
-    目标文件
-
-    .Example
-    Convert-URL -RootUrl "https://github.com/blog" -RelativeTo "/a/" -Target "/a/b/c"
-
-    # 结果是https://github.com/blog/b/c
-#>
-function Convert-URL{
-    Param(
-        [Parameter(Mandatory=$false)]
-        [string]
-        $RootUrl = (Get-EleVariable -Name RootUrl),
-
-        [Parameter(Mandatory=$true)]
-        [string]
-        $RelativeTo,
-
-        [Parameter(Mandatory=$true)]
-        [string]
-        $Target)
-
-    $rePath = [System.IO.Path]::GetRelativePath($RelativeTo,$Target)
-
-    $builder = [System.UriBuilder]::new($RootUrl)
-
-    $builder.Path += "/" + $rePath
-
-    return $builder.ToString()
 }
 
 <#
@@ -298,9 +175,6 @@ function Convert-Paginations{
     return $pages
 }
 
-Export-ModuleMember -Function "Start-ThreadJob"
-Export-ModuleMember -Function "Invoke-ParallelScriptBlock"
 Export-ModuleMember -Function "Convert-MarkdownPoster"
 Export-ModuleMember -Function "Convert-ScribanTemplate"
-Export-ModuleMember -Function "Convert-URL"
 Export-ModuleMember -Function "Convert-Paginations"

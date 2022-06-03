@@ -10,9 +10,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,7 +30,7 @@ namespace EightLeggedEssay
         /// </summary>
         static void PrintHelp()
         {
-            Console.WriteLine("usage:EightLeggedEssay [--options]");
+            Console.WriteLine("usage:EightLeggedEssay [--options] -- [command options]");
             Console.WriteLine("options:");
             Console.WriteLine("\t--server path  :start a http server in path,default in output path");
             Console.WriteLine("\t--config path  :set the path to load config file");
@@ -37,6 +39,8 @@ namespace EightLeggedEssay
             Console.WriteLine("\t--help         :print help then exit with success");
             Console.WriteLine("\t--debug        :entry debug mode");
             Console.WriteLine("\t--new    path  :create a new site in path then exit");
+            Console.WriteLine("\t--run  command :execute a command that defined by configuration file");
+            Console.WriteLine("\tthe arguments after `--` will send to the `--run command`");
         }
 
         /// <summary>
@@ -53,6 +57,16 @@ namespace EightLeggedEssay
         /// 配置文件地址
         /// </summary>
         public static string ConfigurationPath { get; set; } = "./EightLeggedEssay.json";
+
+        /// <summary>
+        /// 执行的命令。如果不是处在命令执行模式则为null
+        /// </summary>
+        public static string? ExecuteCommand { get; private set; } = null;
+
+        /// <summary>
+        /// 执行命令的参数
+        /// </summary>
+        public static List<string> CommandArguments { get; private set; } = new();
 
         /// <summary>
         /// entry function
@@ -82,6 +96,15 @@ namespace EightLeggedEssay
                 else if (arg == "--repl")
                 {
                     repl = true;
+                }
+                else if (arg == "--")
+                {
+                    index++;
+                    if (index != args.Length)
+                    {
+                        CommandArguments.AddRange(args[index..]);
+                    }
+                    break;
                 }
                 else if (arg == "--debug")
                 {
@@ -126,6 +149,19 @@ namespace EightLeggedEssay
                         ScriptEngineManager.SystemModulePath = args[index];
                     }
                 }
+                else if (arg == "--run")
+                {
+                    index++;
+
+                    if (index == args.Length)
+                    {
+                        Printer.ErrLine("Miss option for --command");
+                    }
+                    else
+                    {
+                        ExecuteCommand = args[index];
+                    }
+                }
                 else if (arg == "--new")
                 {
                     index++;
@@ -143,7 +179,9 @@ namespace EightLeggedEssay
                             Directory.CreateDirectory(createPath);
                         }
 
-                        Configuration.GlobalConfiguration.SaveTo(Path.Join(createPath, ConfigurationPath));
+                        Configuration.GlobalConfiguration.Commands.Add("new", "new.ps1");
+
+                        Configuration.SaveTo(Path.Join(createPath, ConfigurationPath));
 
                         Directory.CreateDirectory(Path.Join(createPath, Configuration.GlobalConfiguration.OutputDirectory));
                         Directory.CreateDirectory(Path.Join(createPath, Configuration.GlobalConfiguration.SourceDirectory));
@@ -151,6 +189,29 @@ namespace EightLeggedEssay
                         Directory.CreateDirectory(Path.Join(createPath, Configuration.GlobalConfiguration.ThemeDirectory));
 
                         File.Create(Path.Join(createPath, Configuration.GlobalConfiguration.BuildScript)).Close();
+
+                        File.WriteAllText(Path.Join(createPath, "new.ps1"),
+                            @"
+# create a new poster
+if($args.Length -ne 1){
+    Write-Error ""input a argument as poster relative path to create a new poster""
+    return
+}
+
+$config = Get-EleVariable Configuration | ConvertFrom-Json
+
+$File = [System.IO.Path]::GetFullPath(($config.ContentDirectory) + ""/"" + ($args[0]))
+
+$NewPosterHeader = @{ }
+
+$NewPosterHeader[""Title""] = $File.Name
+$NewPosterHeader[""CreateTime""] = Get-Date
+
+New-Item -Path $File -ItemType file
+
+(""<!--INFOS--`n{0}`n--INFOS-->`n`n#Hello World!`n"" -f ($NewPosterHeader | ConvertTo-Json)) | Out-File -FilePath $File -Encoding ""UTF-8""
+
+                        ".Trim());
 
                         return 0;
                     }
@@ -162,10 +223,21 @@ namespace EightLeggedEssay
                 }
                 index++;
             }
+            // 检查参数
+            if (repl && ExecuteCommand != null)
+            {
+                Printer.ErrLine($"entry repl mode and execute command at same time!");
+                return 1;
+            }
+            if (ExecuteCommand == null && CommandArguments.Count != 0)
+            {
+                Printer.ErrLine($"not execute any command but added command arguments");
+                return 1;
+            }
 
-            // load configuration
-            var config = Configuration.ReadFrom(ConfigurationPath);
-            Configuration.GlobalConfiguration = config;
+            // 加载配置文件
+            Configuration.ReadFrom(ConfigurationPath);
+            var config = Configuration.GlobalConfiguration;
 
             // 构建
             var clock = new Stopwatch();
@@ -178,13 +250,31 @@ namespace EightLeggedEssay
                 {
                     Printer.OkLine("powered by PowerShell v{0}", engine.Shell.Runspace.Version);
 
-                    // 执行脚本
-                    if (!repl)
+                    // 构建脚本
+                    if (!repl && ExecuteCommand == null)
                     {
-                        var command = $"{Path.GetFullPath(config.BuildScript)}";
+                        var command = Path.GetFullPath(config.BuildScript);
                         Printer.OkLine("execute:{0}", command);
 
                         engine.Shell.AddCommand(command).Invoke();
+                    }
+                    // 执行命令
+                    else if (ExecuteCommand != null)
+                    {
+                        if (config.Commands.TryGetValue(ExecuteCommand, out string? script))
+                        {
+                            var command = Path.GetFullPath(script);
+                            Printer.OkLine("execute:{0}", command);
+
+                            engine.Shell.AddCommand(command)
+                                .AddParameters(CommandArguments)
+                                .Invoke();
+                        }
+                        else
+                        {
+                            Printer.ErrLine("unknown command:{0}", ExecuteCommand);
+                            return -1;
+                        }
                     }
                     // 进入repl循环
                     else

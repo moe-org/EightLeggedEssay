@@ -21,20 +21,25 @@ namespace EightLeggedEssay.Cmdlet
     /// </summary>
     public enum SystemVariableEnums
     {
-        ContentDir,
-        ThemeDir,
-        OutputDir,
-        SourceDir,
-        RootUrl,
-        BuildScript,
-        UserConfiguration
+        /// <summary>
+        /// 是否处在debug模式
+        /// </summary>
+        IsDebugMode,
+        /// <summary>
+        /// http服务器地址
+        /// </summary>
+        ServerPath,
+        /// <summary>
+        /// 配置文件的文本
+        /// </summary>
+        Configuration,
     }
 
     /// <summary>
     /// 获取系统变量
     /// </summary>
     [Cmdlet(VerbsCommon.Get,"EleVariable")]
-    [OutputType(typeof(string))]
+    [OutputType(typeof(object))]
     public class GetVariable : PSCmdlet
     {
         /// <summary>
@@ -49,33 +54,20 @@ namespace EightLeggedEssay.Cmdlet
         [Parameter(ValueFromPipeline = true,Position = 0,Mandatory = true)]
         public string Name { get; set; } = "";
 
-
         protected override void ProcessRecord()
         {
             if (Enum.TryParse(Name,out SystemVariableEnums variable))
             {
                 switch (variable)
                 {
-                    case SystemVariableEnums.ContentDir:
-                        WriteObject(Configuration.GlobalConfiguration.ContentDirectory);
+                    case SystemVariableEnums.ServerPath:
+                        WriteObject(Program.ServerPath);
                         return;
-                    case SystemVariableEnums.OutputDir:
-                        WriteObject(Configuration.GlobalConfiguration.OutputDirectory);
+                    case SystemVariableEnums.IsDebugMode:
+                        WriteObject(Program.DebugMode);
                         return;
-                    case SystemVariableEnums.SourceDir:
-                        WriteObject(Configuration.GlobalConfiguration.SourceDirectory);
-                        return;
-                    case SystemVariableEnums.ThemeDir:
-                        WriteObject(Configuration.GlobalConfiguration.ThemeDirectory);
-                        return;
-                    case SystemVariableEnums.RootUrl:
-                        WriteObject(Configuration.GlobalConfiguration.RootUrl);
-                        return;
-                    case SystemVariableEnums.BuildScript:
-                        WriteObject(Configuration.GlobalConfiguration.BuildScript);
-                        return;
-                    case SystemVariableEnums.UserConfiguration:
-                        WriteObject(Configuration.GlobalConfiguration.UserConfiguration);
+                    case SystemVariableEnums.Configuration:
+                        WriteObject(Configuration.GlobalConfigurationText);
                         return;
                 }
             }
@@ -84,7 +76,7 @@ namespace EightLeggedEssay.Cmdlet
                 new ArgumentException("unknown system variable name"),
                 string.Empty,
                 ErrorCategory.InvalidArgument,
-                null));
+                Name));
             WriteObject(null);
         }
 

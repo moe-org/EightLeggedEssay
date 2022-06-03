@@ -28,7 +28,12 @@ namespace EightLeggedEssay
         /// <summary>
         /// 全局配置文件
         /// </summary>
-        public static Configuration GlobalConfiguration { get; set; } = new Configuration();
+        public static Configuration GlobalConfiguration { get; private set; } = new Configuration();
+
+        /// <summary>
+        /// 全局配置文件的源文本
+        /// </summary>
+        public static string GlobalConfigurationText { get; private set; } = string.Empty;
 
         /// <summary>
         /// 站点URL
@@ -66,24 +71,33 @@ namespace EightLeggedEssay
         public Dictionary<string, JsonNode> UserConfiguration { get; set; } = new();
 
         /// <summary>
+        /// 映射command到脚本文件
+        /// </summary>
+        public Dictionary<string, string> Commands { get; set; } = new();
+
+        /// <summary>
         /// 保存配置文件到路径
         /// </summary>
         /// <param name="path">指定路径</param>
-        public void SaveTo(string path)
+        public static void SaveTo(string path)
         {
+            var config = GlobalConfiguration;
+
             JsonSerializerOptions opt = new()
             {
                 WriteIndented = true
             };
 
+            GlobalConfigurationText = JsonSerializer.Serialize(config, opt);
+
             if (!File.Exists(path))
             {
                 using var f = File.Create(path);
-                f.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this, opt)));
+                f.Write(Encoding.UTF8.GetBytes(GlobalConfigurationText));
             }
             else
             {
-                File.WriteAllBytes(path,Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this, opt)));
+                File.WriteAllBytes(path, Encoding.UTF8.GetBytes(GlobalConfigurationText));
             }
         }
 
@@ -92,9 +106,10 @@ namespace EightLeggedEssay
         /// </summary>
         /// <param name="path">路径</param>
         /// <returns>获取的配置文件</returns>
-        public static Configuration ReadFrom(string path)
+        public static void ReadFrom(string path)
         {
-            return JsonSerializer.Deserialize<Configuration>(File.ReadAllText(path,Encoding.UTF8)) 
+            GlobalConfigurationText = File.ReadAllText(path, Encoding.UTF8);
+            GlobalConfiguration = JsonSerializer.Deserialize<Configuration>(GlobalConfigurationText)
                 ?? throw new JsonException("empty json");
         }
     }
