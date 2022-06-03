@@ -24,7 +24,6 @@ namespace EightLeggedEssay.Cmdlet.Markdown
     /// </summary>
     public static class MarkdownCompiler
     {
-
         /// <summary>
         /// 渲染选项
         /// </summary>
@@ -97,7 +96,6 @@ namespace EightLeggedEssay.Cmdlet.Markdown
         /// <param name="msg"></param>
         /// <param name="inner"></param>
         public MarkdownParseException(string msg, Exception inner) : base(msg, inner) { }
-
     }
 
     /// <summary>

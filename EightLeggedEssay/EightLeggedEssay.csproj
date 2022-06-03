@@ -6,6 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<StartupObject>EightLeggedEssay.Program</StartupObject>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
 	</PropertyGroup>
 
 	<ItemGroup>

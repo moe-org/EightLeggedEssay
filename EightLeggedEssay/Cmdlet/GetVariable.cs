@@ -27,6 +27,7 @@ namespace EightLeggedEssay.Cmdlet
         SourceDir,
         RootUrl,
         BuildScript,
+        UserConfiguration
     }
 
     /// <summary>
@@ -73,10 +74,17 @@ namespace EightLeggedEssay.Cmdlet
                     case SystemVariableEnums.BuildScript:
                         WriteObject(Configuration.GlobalConfiguration.BuildScript);
                         return;
+                    case SystemVariableEnums.UserConfiguration:
+                        WriteObject(Configuration.GlobalConfiguration.UserConfiguration);
+                        return;
                 }
             }
-            
-            WriteError(new ErrorRecord(new ArgumentException("unknown system variable name"),String.Empty,ErrorCategory.InvalidArgument, null));
+
+            WriteError(new ErrorRecord(
+                new ArgumentException("unknown system variable name"),
+                string.Empty,
+                ErrorCategory.InvalidArgument,
+                null));
             WriteObject(null);
         }
 

@@ -20,11 +20,11 @@ namespace EightLeggedEssay.Cmdlet.Markdown
     /// <summary>
     /// 编译Markdown的Cmdlet
     /// </summary>
-    [Cmdlet("Compile", "Markdown")]
+    [Cmdlet(VerbsData.Convert, "Markdown")]
     [OutputType(typeof(object[]))]
     public class CompileMarkdown : PSCmdlet
     {
-        public const string CallName = "Compile-Markdown";
+        public const string CallName = "Convert-Markdown";
 
         /// <summary>
         /// 是否使用高级扩展
@@ -67,11 +67,11 @@ namespace EightLeggedEssay.Cmdlet.Markdown
     /// 编译Markdown文章。和Compile-Markdown不同，文章包括头部信息，并且来自文件系统。
     /// 自带增量编译功能
     /// </summary>
-    [Cmdlet("Compile", "PriMarkdownPoster")]
+    [Cmdlet(VerbsData.Convert, "PriMarkdownPoster")]
     [OutputType(typeof(MarkdownPoster))]
     public class CompileMarkdownPoster : PSCmdlet
     {
-        public const string CallName = "Compile-PriMarkdownPoster";
+        public const string CallName = "Convert-PriMarkdownPoster";
 
         /// <summary>
         /// 要输入的markdown文章文本

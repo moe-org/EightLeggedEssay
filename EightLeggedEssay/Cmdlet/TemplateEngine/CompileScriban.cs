@@ -121,11 +121,11 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
     /// <summary>
     /// 用于渲染Scriban模板引擎的Cmdlet
     /// </summary>
-    [Cmdlet("Compile", "Scriban")]
+    [Cmdlet(VerbsData.Convert, "Scriban")]
     [OutputType(typeof(string))]
     public class CompileScriban : PSCmdlet
     {
-        public const string CallName = "Compile-Scriban";
+        public const string CallName = "Convert-Scriban";
 
         /// <summary>
         /// 模板源字符串

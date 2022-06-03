@@ -84,7 +84,7 @@ namespace EightLeggedEssay
             else
             {
                 File.WriteAllBytes(path,Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this, opt)));
-            }  
+            }
         }
 
         /// <summary>
