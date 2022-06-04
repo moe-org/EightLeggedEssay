@@ -7,6 +7,7 @@
 //
 //===---------------------------------------------------===//
 
+using Scriban.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -112,6 +113,19 @@ namespace EightLeggedEssay
                     }
                 }
             }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new();
+            builder.AppendLine(string.Format("Poster Title:{0}", Title));
+            builder.AppendLine(string.Format("Poster CreateTime:{0}", CreateTime));
+            builder.AppendLine(string.Format("Poster Strict:{0}", Strict));
+            builder.AppendLine(string.Format("Poster Attributes:{0}", Attributes));
+            builder.AppendLine(string.Format("Poster Source Path:{0}", SourcePath));
+            builder.AppendLine(string.Format("Poster Compiled Path:{0}", CompiledPath));
+            builder.AppendLine(string.Format("Poster Text:{0}", Text));
+            return builder.ToString();
         }
 
         /// <summary>

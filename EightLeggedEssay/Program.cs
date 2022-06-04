@@ -285,13 +285,19 @@ New-Item -Path $File -ItemType file
                         Printer.Ok("> ");
                         while (!string.IsNullOrEmpty(cmd = Console.ReadLine()))
                         {
-                            var results = engine.Shell.AddScript(cmd).Invoke();
-
-                            engine.Shell.Commands.Clear();
-
-                            foreach (var result in results)
+                            try
                             {
-                                Console.WriteLine("{0}", result);
+                                var results = engine.Shell.AddScript(cmd).Invoke();
+
+                                engine.Shell.Commands.Clear();
+
+                                foreach (var result in results)
+                                {
+                                    Console.WriteLine("{0}", result);
+                                }
+                            }
+                            catch (Exception err) {
+                                Printer.ErrLine("{0}", err.ToString());
                             }
 
                             Printer.Ok("> ");

@@ -51,8 +51,6 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
         }
 
         private static readonly ThreadLocal<ScribanIncluder> Includer = new();
-        private static readonly ThreadLocal<TemplateContext> Context = new();
-        private static readonly ThreadLocal<ScriptObject> EmptyObject = new();
 
         /// <summary>
         /// 渲染
@@ -74,46 +72,28 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
             var includer = Includer.Value;
             includer.IncludePath = includePath ?? Environment.CurrentDirectory;
 
-
-            if (Context.Value == null)
+            TemplateContext context = new()
             {
-                Context.Value = new();
-            }
-            var context = Context.Value;
-
-
-            // 清除缓存
-            context.CachedTemplates.Clear();
+                MemberRenamer = member => member.Name,
+                StrictVariables = true,
+            };
+            context.PushGlobal(variable ?? new ScriptObject());
 
             // 渲染
-            if (variable != null)
-            {
-                context.PushGlobal(variable);
-            }
-            try
-            {
-                var parsed = Template.Parse(template);
 
-                if (parsed.HasErrors)
-                {
-                    logs = parsed.Messages;
-                    return string.Empty;
-                }
-                else
-                {
-                    logs = null;
-                }
+            var parsed = Template.Parse(template);
 
-                return parsed.Render(context);
-            }
-            finally
+            if (parsed.HasErrors)
             {
-                // 控制变量作用域
-                if (variable != null)
-                {
-                    context.PopGlobal();
-                }
+                logs = parsed.Messages;
+                return string.Empty;
             }
+            else
+            {
+                logs = null;
+            }
+
+            return parsed.Render(context);
         }
 
     }
@@ -193,7 +173,7 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
                 {
                     WriteError(
                         new ErrorRecord(
-                            new Scriban.Syntax.ScriptRuntimeException(err.Span, err.Message),
+                            new ScriptRuntimeException(err.Span, err.Message),
                             null,
                             ErrorCategory.InvalidData,
                             source));

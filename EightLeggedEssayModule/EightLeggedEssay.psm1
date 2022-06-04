@@ -97,7 +97,7 @@ function Convert-ScribanTemplate{
         $Attributes = @{})
 
     Get-Content -Path $TemplateFile -Raw | 
-    Convert-Scriban -Attributes $Attributes | 
+    Convert-Scriban -Property ($Attributes | Get-ScribanTable) -IncludePath $TemplateFile.DirectoryName | 
     Out-File $OutputFile -Encoding "UTF-8"
 }
 

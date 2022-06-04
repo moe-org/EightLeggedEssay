@@ -7,6 +7,7 @@
 //
 //===---------------------------------------------------===//
 
+using Scriban;
 using Scriban.Runtime;
 using System;
 using System.Collections;
@@ -41,37 +42,43 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
         /// function callable的返回值同上。</returns>
         private static object? Visit(object? unknown)
         {
+            // unwrapper
+            if(unknown?.GetType() == typeof(PSObject))
+            {
+                unknown = ((PSObject)unknown).BaseObject;
+            }
+
             // 对于null，直接返回
             if (unknown == null)
             {
                 return null;
+            }
+            // 对于map，遍历每一对key，返回字典
+            else if (unknown.GetType().IsAssignableTo(typeof(IDictionary)))
+            {
+                var dict = (IDictionary)unknown;
+                ScriptObject table = new(dict.Keys.Count);
+
+                foreach (var key in dict.Keys)
+                {
+                    table.Add(key.ToString(), Visit(dict[key]));
+                }
+
+                return table;
             }
             // 对于集合，遍历每个子单元，返回数组
             else if (unknown.GetType().IsAssignableTo(typeof(ICollection)))
             {
                 var list = (ICollection)unknown;
 
-                ScriptArray array = new();
+                ScriptArray array = new(list.Count);
 
-                foreach (var item in list)
+                foreach(var item in list)
                 {
                     array.Add(Visit(item));
                 }
 
                 return array;
-            }
-            // 对于数组，遍历每一对key，返回字典
-            else if (unknown.GetType().IsAssignableTo(typeof(IDictionary)))
-            {
-                var dict = (IDictionary)unknown;
-                ScriptObject obj = new();
-
-                foreach (var key in dict.Keys)
-                {
-                    obj.Add(key.ToString(), Visit(dict[key]));
-                }
-
-                return obj;
             }
             // 对于函数块，使用惰性求值
             // 即在使用时才求值
@@ -88,7 +95,8 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
             }
             else
             {
-                return unknown.ToString();
+                // 直接返回
+                return unknown;
             }
         }
 
@@ -98,7 +106,7 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
             {
                 WriteError(new ErrorRecord(
                     new ArgumentNullException(
-                        $"Source is null or isn't IDictionary. {Source?.BaseObject.GetType()}", nameof(Source)),
+                        $"Source is null or isn't IDictionary. {Source?.GetType()}", nameof(Source)),
                     string.Empty,
                     ErrorCategory.InvalidArgument, Source));
                 return;
@@ -110,7 +118,7 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
 
             foreach (var key in table.Keys)
             {
-                result.Add(key.ToString(), Visit(table[key]));
+                result[key.ToString()] = Visit(table[key]);
             }
 
             WriteObject(result);

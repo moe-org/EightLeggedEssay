@@ -82,7 +82,7 @@ namespace EightLeggedEssay.Cmdlet.Markdown
     /// <summary>
     /// markdown解析异常
     /// </summary>
-    public class MarkdownParseException : System.Exception
+    public class MarkdownParseException : Exception
     {
         /// <summary>
         /// 构造一个markdown解析异常
