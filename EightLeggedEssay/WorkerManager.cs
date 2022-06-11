@@ -16,7 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EightLeggedEssay.ThreadWorker
+namespace EightLeggedEssay
 {
     /// <summary>
     /// 线程工作异常
@@ -70,7 +70,7 @@ namespace EightLeggedEssay.ThreadWorker
         /// <param name="count">线程数量</param>
         public WorkerManager(long count, string name)
         {
-            if(count == 0)
+            if (count == 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(count), "count must not be zero");
             }
@@ -127,7 +127,7 @@ namespace EightLeggedEssay.ThreadWorker
                 Thread t;
                 lock (Locker)
                 {
-                    if(Threads.Count != 0)
+                    if (Threads.Count != 0)
                     {
                         t = Threads[0];
                         Threads.RemoveAt(0);

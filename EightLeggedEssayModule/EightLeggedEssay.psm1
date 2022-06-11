@@ -1,6 +1,7 @@
 
-Import-Module "$PSScriptRoot/Thread.ps1"
-Import-Module "$PSScriptRoot/Utility.ps1"
+. "$PSScriptRoot/Thread.ps1"
+. "$PSScriptRoot/Utility.ps1"
+. "$PSScriptRoot/Rss.ps1"
 
 <#
     .SYNOPSIS
@@ -159,7 +160,7 @@ function Convert-Paginations{
             CurrentPageNumber = $pageIndex
             PostersIndexStart = $allocedPosters
             PosterCount = $alloc
-            Posters = $Posters[$allocedPosters..($allocedPosters + $alloc)]
+            Posters = $Posters[$allocedPosters..($allocedPosters + $alloc - 1)]
             IsFirstPage = $isFirstPage
             IsLastPage = $isLastPage
         }

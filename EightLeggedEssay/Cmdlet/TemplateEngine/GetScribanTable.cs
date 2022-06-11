@@ -42,7 +42,7 @@ namespace EightLeggedEssay.Cmdlet.TemplateEngine
         /// function callable的返回值同上。</returns>
         private static object? Visit(object? unknown)
         {
-            // unwrapper
+            // unwrap
             if(unknown?.GetType() == typeof(PSObject))
             {
                 unknown = ((PSObject)unknown).BaseObject;

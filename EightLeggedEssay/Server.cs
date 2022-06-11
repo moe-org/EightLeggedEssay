@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -153,7 +154,8 @@ namespace EightLeggedEssay
                                 // 用户没有访问任何URL或者访问了Root
                                 // 千里转进index
                                 response.Redirect(IndexUrl);
-                                absPath = opt.IndexPage;
+                                response.Close();
+                                return;
                             }
                             else
                             {
@@ -165,11 +167,112 @@ namespace EightLeggedEssay
                         // 读取文件并写入
                         try
                         {
-                            var bytes = File.ReadAllBytes(Path.Join(opt.Workpath, absPath));
-                            response.OutputStream.Write(bytes);
+                            var buffer = File.ReadAllBytes(Path.Join(opt.Workpath, absPath));
+
+                            // text
+                            if (absPath.EndsWith(".html") || absPath.EndsWith(".htm"))
+                            {
+                                response.ContentType = "text/html";
+                            }
+                            else if (absPath.EndsWith(".mjs") || absPath.EndsWith(".js"))
+                            {
+                                response.ContentType = "application/javascript";
+                            }
+                            else if (absPath.EndsWith(".csv"))
+                            {
+                                response.ContentType = "text/csv";
+                            }
+                            else if (absPath.EndsWith(".css"))
+                            {
+                                response.ContentType = "text/css";
+                            }
+                            else if (absPath.EndsWith(".xml"))
+                            {
+                                response.ContentType = "text/xml";
+                            }
+                            else if (absPath.EndsWith(".xhtml") || absPath.EndsWith(".xht"))
+                            {
+                                response.ContentType = "application/xhtml+xml";
+                            }
+                            // image
+                            else if (absPath.EndsWith(".gif"))
+                            {
+                                response.ContentType = "image/gif";
+                            }
+                            else if (absPath.EndsWith(".jpeg") || absPath.EndsWith(".jpg") || absPath.EndsWith(".jpe"))
+                            {
+                                response.ContentType = "image/jpeg";
+                            }
+                            else if (absPath.EndsWith(".png"))
+                            {
+                                response.ContentType = "image/png";
+                            }
+                            else if (absPath.EndsWith(".webp"))
+                            {
+                                response.ContentType = "image/webp";
+                            }
+                            else if (absPath.EndsWith(".svg") || absPath.EndsWith(".svgz"))
+                            {
+                                response.ContentType = "image/svg+xml";
+                            }
+                            else if (absPath.EndsWith(".tiff") || absPath.EndsWith(".tif"))
+                            {
+                                response.ContentType = "image/tiff";
+                            }
+                            else if (absPath.EndsWith(".ico") || absPath.EndsWith(".icon"))
+                            {
+                                response.ContentType = "image/x-icon";
+                            }
+                            // font
+                            else if (absPath.EndsWith(".woff"))
+                            {
+                                response.ContentType = "font/woff";
+                            }
+                            else if (absPath.EndsWith(".woff2"))
+                            {
+                                response.ContentType = "font/woff2";
+                            }
+                            else if (absPath.EndsWith(".ttf") || absPath.EndsWith(".ttc")
+                                || absPath.EndsWith(".otf") || absPath.EndsWith(".otc"))
+                            {
+                                response.ContentType = "font/otf";
+                            }
+                            // audio && video
+                            else if (absPath.EndsWith(".mp3"))
+                            {
+                                response.ContentType = "audio/mpeg";
+                            }
+                            else if (absPath.EndsWith(".flac"))
+                            {
+                                response.ContentType = "audio/x-flac";
+                            }
+                            else if (absPath.EndsWith(".ogg") || absPath.EndsWith(".ogv") || absPath.EndsWith(".oga"))
+                            {
+                                response.ContentType = "application/ogg";
+                            }
+                            else if (absPath.EndsWith(".m4a") || absPath.EndsWith(".mp4"))
+                            {
+                                response.ContentType = "application/mp4";
+                            }
+                            // rss
+                            else if (absPath.EndsWith(".rss"))
+                            {
+                                response.ContentType = "application/rss+xml";
+                            }
+                            // others
+                            else
+                            {
+                                Printer.WarnLine("{0}:{1}{2}", "Http Server", "unknown response content type:", absPath);
+                            }
+
+                            response.ContentLength64 = buffer.Length;
+                            Stream output = response.OutputStream;
+                            response.StatusCode = ((int)HttpStatusCode.OK);
+                            output.Write(buffer, 0, buffer.Length);
+                            response.Close();
                         }
                         // 找不到文件
-                        catch(FileNotFoundException)
+                        catch (FileNotFoundException)
                         {
                             if (hasNotFound)
                             {
@@ -186,7 +289,6 @@ namespace EightLeggedEssay
                             }
                         }
 
-
                         response.Close();
                     }
 
@@ -198,6 +300,10 @@ namespace EightLeggedEssay
                     catch (Exception e)
                     {
                         Console.WriteLine(e.ToString());
+                    }
+                    finally
+                    {
+                        response.Close();
                     }
                 }
             }

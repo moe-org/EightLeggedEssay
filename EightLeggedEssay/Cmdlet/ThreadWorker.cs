@@ -7,9 +7,9 @@
 //
 //===---------------------------------------------------===//
 
-using EightLeggedEssay.ThreadWorker;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
@@ -80,7 +80,7 @@ namespace EightLeggedEssay.Cmdlet
         /// 调用堆栈
         /// </summary>
         [Parameter(ValueFromPipeline = false, Mandatory = true, Position = 3)]
-        public string? CallStack { get; set; } = string.Empty;
+        public string? CallStack { get; set; } = null;
 
         /// <summary>
         /// 要传递的对象
@@ -109,18 +109,22 @@ namespace EightLeggedEssay.Cmdlet
 
             var script = ScriptBlock;
 
-            var location = CallStack ?? string.Empty;
+            var location = CallStack ?? "unknown";
 
             Manager.Start(
                 () =>
                 {
                     var engine = ScriptEngine.GetEngine(Thread.CurrentThread.Name!, location);
 
+                    Collection<PSObject?> result;
+
                     engine.Open();
 
-                    engine.Shell.Runspace.SessionStateProxy.SetVariable("PassedVariable", PassedVariable?.BaseObject);
+                    {
+                        engine.Shell.Runspace.SessionStateProxy.SetVariable("PassedVariable", PassedVariable?.BaseObject);
 
-                    var result = engine.Shell.AddScript(script.ToString()).Invoke();
+                        result = engine.Shell.AddScript(script.ToString()).Invoke();
+                    }
 
                     engine.Close();
 

@@ -67,6 +67,8 @@ namespace EightLeggedEssay
             AddCmdlet(Cmdlet.Markdown.CompileMarkdown.CallName, typeof(Cmdlet.Markdown.CompileMarkdown));
             AddCmdlet(Cmdlet.Markdown.CompileMarkdownPoster.CallName, typeof(Cmdlet.Markdown.CompileMarkdownPoster));
 
+            AddCmdlet(Cmdlet.StartServer.CallName, typeof(Cmdlet.StartServer));
+
             // 添加系统模块
             session.ImportPSModule(SystemModulePath);
 

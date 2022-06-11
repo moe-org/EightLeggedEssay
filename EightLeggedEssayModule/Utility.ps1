@@ -19,9 +19,9 @@
 #>
 function Convert-URL{
     Param(
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$true)]
         [string]
-        $RootUrl = (Get-EleVariable -Name RootUrl),
+        $RootUrl,
 
         [Parameter(Mandatory=$true)]
         [string]
@@ -31,7 +31,8 @@ function Convert-URL{
         [string]
         $Target)
 
-    $rePath = [System.IO.Path]::GetRelativePath($RelativeTo,$Target)
+    
+    $rePath = [System.IO.Path]::GetRelativePath([System.IO.Path]::GetFullPath($RelativeTo),[System.IO.Path]::GetFullPath($Target))
 
     $builder = [System.UriBuilder]::new($RootUrl)
 

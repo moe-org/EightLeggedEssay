@@ -20,7 +20,7 @@
 function Start-ThreadJob{
     Param(
         [Parameter(Mandatory=$true)]
-        [EightLeggedEssay.ThreadWorker.WorkerManager]
+        [EightLeggedEssay.WorkerManager]
         $Manager,
         
         [Parameter(Mandatory=$true)]
