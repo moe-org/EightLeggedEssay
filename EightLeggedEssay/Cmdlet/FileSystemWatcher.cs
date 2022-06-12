@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace EightLeggedEssay.Cmdlet
 {
+
     /// <summary>
     /// 创建一个新的文件系统监视器
     /// </summary>
@@ -30,9 +31,17 @@ namespace EightLeggedEssay.Cmdlet
 
         protected override void ProcessRecord()
         {
-            FileSystemWatcher fileSystem = new();
-            fileSystem.BeginInit();
-            fileSystem.Path = Path ?? throw new ArgumentNullException(nameof(Path));
+            FileSystemWatcher fileSystem = new(Path ?? throw new ArgumentNullException(nameof(Path)));
+            fileSystem.IncludeSubdirectories = true;
+            fileSystem.NotifyFilter = 
+                                   NotifyFilters.Attributes
+                                 | NotifyFilters.CreationTime
+                                 | NotifyFilters.DirectoryName
+                                 | NotifyFilters.FileName
+                                 | NotifyFilters.LastAccess
+                                 | NotifyFilters.LastWrite
+                                 | NotifyFilters.Security
+                                 | NotifyFilters.Size;
             WriteObject(fileSystem);
         }
     }
@@ -40,73 +49,87 @@ namespace EightLeggedEssay.Cmdlet
     /// <summary>
     /// 设置文件系统管理器信息
     /// </summary>
-    [Cmdlet(VerbsCommon.Add, "FileSystemWatcherSettings")]
+    [Cmdlet(VerbsCommon.Set, "FileSystemWatcherSettings")]
     public class AddFileWatcherHandle : PSCmdlet
     {
-        public const string CallName = "Add-FileSystemWatcherSettings";
+        public const string CallName = "Set-FileSystemWatcherSettings";
 
         [Parameter(Position = 0, Mandatory = true, ValueFromPipeline = true)]
         public FileSystemWatcher FileWatcher { get; set; } = null!;
 
         [Parameter(Mandatory = false)]
-        public ScriptBlock? OnChanged { get; set; } = null;
+        public SwitchParameter OnChanged { get; set; } = new(false);
 
         [Parameter(Mandatory = false)]
-        public ScriptBlock? OnDeleted { get; set; } = null;
+        public SwitchParameter OnDeleted { get; set; } = new(false);
 
         [Parameter(Mandatory = false)]
-        public ScriptBlock? OnCreated { get; set; } = null;
+        public SwitchParameter OnCreated { get; set; } = new(false);
 
         [Parameter(Mandatory = false)]
-        public ScriptBlock? OnError { get; set; } = null;
+        public SwitchParameter OnError { get; set; } = new(false);
 
         [Parameter(Mandatory = false)]
-        public ScriptBlock? OnRenamed { get; set; } = null;
+        public SwitchParameter OnRenamed { get; set; } = new(false);
+
+        [Parameter(Mandatory = false)]
+        public SwitchParameter NoIncludeSubdirectories { get; set; } = new(false);
 
         [Parameter(Mandatory = false)]
         public string? Fillter { get; set; } = null;
 
         protected override void ProcessRecord()
         {
-            if(OnChanged != null)
+            if(OnChanged.IsPresent)
             {
                 FileWatcher.Changed += (obj,param) =>
                 {
-                    OnChanged.Invoke(obj, param);
+                    var eve = Events.GenerateEvent("FileSystemWarcher.OnChanged",obj,null,new PSObject(param),true,true);
+                    Printer.PutLine("{0}:file system event received:{1}",Thread.CurrentThread.Name,param.FullPath);
                 };
             }
-            if (OnCreated != null)
+            if (OnCreated.IsPresent)
             {
                 FileWatcher.Created += (obj, param) =>
                 {
-                    OnCreated.Invoke(obj, param);
+                    var eve = Events.GenerateEvent("FileSystemWarcher.OnCreated", obj, null, new PSObject(param), true, true);
+                    Printer.PutLine("{0}:file system event received:{1}", Thread.CurrentThread.Name, param.FullPath);
+
                 };
             }
-            if (OnDeleted != null)
+            if (OnDeleted.IsPresent)
             {
                 FileWatcher.Deleted += (obj, param) =>
                 {
-                    OnDeleted.Invoke(obj, param);
+                    var eve = Events.GenerateEvent("FileSystemWarcher.OnDeleted", obj, null, new PSObject(param), true, true);
+                    Printer.PutLine("{0}:file system event received:{1}", Thread.CurrentThread.Name, param.FullPath);
                 };
             }
-            if (OnError != null)
-            {
-                FileWatcher.Error += (obj, param) =>
-                {
-                    OnError.Invoke(obj, param);
-                };
-            }
-            if (OnRenamed != null)
+            if (OnRenamed.IsPresent)
             {
                 FileWatcher.Renamed += (obj, param) =>
                 {
-                    OnRenamed.Invoke(obj, param);
+                    var eve = Events.GenerateEvent("FileSystemWarcher.OnRenamed", obj, null, new PSObject(param), true, true);
+                    Printer.PutLine("{0}:file system event received:{1}", Thread.CurrentThread.Name, param.FullPath);
                 };
             }
-            if(Fillter != null)
+            if (OnError.IsPresent)
+            {
+                FileWatcher.Error += (obj, param) =>
+                {
+                    var eve = Events.GenerateEvent("FileSystemWarcher.OnError", obj, null, new PSObject(param), true, true);
+                    Printer.PutLine("{0}:file system event received:{1}", Thread.CurrentThread.Name, param.ToString());
+                };
+            }
+            if (NoIncludeSubdirectories.IsPresent)
+            {
+                FileWatcher.IncludeSubdirectories = false;
+            }
+            if (Fillter != null)
             {
                 FileWatcher.Filters.Add(Fillter);
             }
+            WriteObject(FileWatcher);
         }
     }
 
@@ -124,7 +147,7 @@ namespace EightLeggedEssay.Cmdlet
 
         protected override void ProcessRecord()
         {
-            FileWatcher.EndInit();
+            FileWatcher.EnableRaisingEvents = true;
             WriteObject(FileWatcher);
         }
     }
@@ -142,6 +165,7 @@ namespace EightLeggedEssay.Cmdlet
 
         protected override void ProcessRecord()
         {
+            FileWatcher.EnableRaisingEvents = false;
             FileWatcher.Dispose();
         }
     }

@@ -160,7 +160,7 @@ namespace EightLeggedEssay
                             else
                             {
                                 // 用户访问了某个URL
-                                absPath = request.Url.AbsolutePath;
+                                absPath = WebUtility.UrlDecode(request.Url.AbsolutePath);
                             }
                         }
 

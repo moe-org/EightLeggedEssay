@@ -57,9 +57,14 @@ namespace EightLeggedEssay
         public bool? Strict { get; set; } = null;
 
         /// <summary>
-        /// 文章的自定义属性，给用户自行使用
+        /// 文章的自定义属性，给用户自行使用。通常保存在文件中。
         /// </summary>
         public Dictionary<string, JsonNode> Attributes { get; set; } = new();
+
+        /// <summary>
+        /// 文章的运行时数据，不会被增量编译保存，由运行时使用。一旦重启程序将修改将丢失。
+        /// </summary>
+        public Dictionary<object, object> ExtendedData { get; set; } = new();
 
         /// <summary>
         /// 文章的源路径。如果为null则说明文章并非来源文件系统。
@@ -104,8 +109,8 @@ namespace EightLeggedEssay
                     else
                     {
                         // 重新加载
-                        target = File.ReadAllText(CompiledPath
-                            ?? throw new InvalidOperationException("try to load memory poster"));
+                        target = ParseText(File.ReadAllBytes(CompiledPath
+                            ?? throw new InvalidOperationException("try to load memory poster")));
 
                         WeakText.SetTarget(target);
 
@@ -208,6 +213,40 @@ namespace EightLeggedEssay
             }
 
             return poster;
+        }
+
+        /// <summary>
+        /// 解析编译过的源文件的文本而不解析头部
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private static string ParseText(byte[] data)
+        {
+            ArgumentNullException.ThrowIfNull(data);
+
+            using var inputStream = new MemoryStream(data);
+
+            var longBuf = new byte[8];
+
+            // 读取头部
+            inputStream.Read(longBuf);
+
+            var length = BitConverter.ToInt64(longBuf);
+
+            inputStream.Seek(length, SeekOrigin.Current);
+
+            // 读取文本
+            inputStream.Read(longBuf);
+
+            length = BitConverter.ToInt64(longBuf);
+
+            var buf = new byte[length];
+
+            inputStream.Read(buf);
+
+            string text = Encoding.UTF8.GetString(buf);
+
+            return text;
         }
 
         /// <summary>
