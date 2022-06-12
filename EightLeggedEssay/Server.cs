@@ -262,7 +262,7 @@ namespace EightLeggedEssay
                             // others
                             else
                             {
-                                Printer.WarnLine("{0}:{1}{2}", "Http Server", "unknown response content type:", absPath);
+                                Printer.WarnLine("{0}:{1}:{2}", "Http Server", "unknown response content type", absPath);
                             }
 
                             response.ContentLength64 = buffer.Length;

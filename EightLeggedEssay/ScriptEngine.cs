@@ -33,7 +33,11 @@ namespace EightLeggedEssay
         /// 系统模块路径
         /// </summary>
         public static string SystemModulePath =
-            Path.Join(Path.GetFullPath(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? "."), "EightLeggedEssayModule/EightLeggedEssay.psd1");
+            Path.Join(
+                Path.GetFullPath(
+                    Path.GetDirectoryName(
+                        Assembly.GetEntryAssembly()?.Location) ?? "."),
+                "EightLeggedEssayModule/EightLeggedEssay.psd1");
 
         private static readonly ThreadLocal<InitialSessionState> SessionStates = new();
 
@@ -68,6 +72,11 @@ namespace EightLeggedEssay
             AddCmdlet(Cmdlet.Markdown.CompileMarkdownPoster.CallName, typeof(Cmdlet.Markdown.CompileMarkdownPoster));
 
             AddCmdlet(Cmdlet.StartServer.CallName, typeof(Cmdlet.StartServer));
+
+            AddCmdlet(Cmdlet.CreateFileWatcher.CallName, typeof(Cmdlet.CreateFileWatcher));
+            AddCmdlet(Cmdlet.AddFileWatcherHandle.CallName, typeof(Cmdlet.AddFileWatcherHandle));
+            AddCmdlet(Cmdlet.BeginFileWatcher.CallName, typeof(Cmdlet.BeginFileWatcher));
+            AddCmdlet(Cmdlet.EndFileWatcher.CallName, typeof(Cmdlet.EndFileWatcher));
 
             // 添加系统模块
             session.ImportPSModule(SystemModulePath);

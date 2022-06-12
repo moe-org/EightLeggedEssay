@@ -39,8 +39,10 @@ namespace EightLeggedEssay.Cmdlet
                 return;
             }
 
-            ServerConfiguration configuration = new();
-            configuration.Workpath = System.IO.Path.GetFullPath(Path);
+            ServerConfiguration configuration = new()
+            {
+                Workpath = System.IO.Path.GetFullPath(Path)
+            };
 
             Server server = new();
             server.Start(configuration);

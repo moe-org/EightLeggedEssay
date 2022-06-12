@@ -84,23 +84,14 @@ namespace EightLeggedEssay
         public Uri Link { get; set; }
         public string Description { get; set; }
         public string? Language { get; set; } = null;
-
         public string? CopyRight { get; set; } = null;
-
         public DateTime? PublishTime { get; set; } = null;
-
         public DateTime? LastBuildDate { get; set; } = null;
-
         public string? Generator { get; set; } = "EightLeggedEssay";
-
         public int? Ttl { get; set; } = null;
-
         public (string,string?)? Category { get; set; } = null;
-
         public string? WebMaster { get; set; } = null;
-
         public string? ManagingEditor { get; set; } = null;
-
         public List<RssItem> Items { get; init; } = new();
 
         /// <summary>
@@ -145,9 +136,10 @@ namespace EightLeggedEssay
             // 开始写入内容
             {
                 // 写入一些必选项
-                write.WriteElementString("title", Title);
+                // call ToString instead of checking null
+                write.WriteElementString("title", Title.ToString());
                 write.WriteElementString("link", Link.ToString());
-                write.WriteElementString("description", Description);
+                write.WriteElementString("description", Description.ToString());
 
                 if(Language is not null)
                 {
