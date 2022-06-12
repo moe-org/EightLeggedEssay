@@ -79,7 +79,11 @@ FunctionsToExport = @(
     "ConvertTo-ThreadSafeHashtable",
     "ConvertTo-RedirectPath",
     "New-Rss",
-    "Add-RssPoster")
+    "Add-RssPoster",
+    "Convert-MarkdownPosterHelper",
+    "Get-NextPageHelper",
+    "Get-PreviousPageHelper",
+    "Get-CurrentPageHelper")
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

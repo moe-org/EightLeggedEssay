@@ -99,6 +99,216 @@ function ConvertTo-ThreadSafeHashtable{
     return [hashtable]::Synchronized($InputObject)
 }
 
+<#
+    .SYNOPSIS
+    对markdown文章进行编译的便捷工具函数。
+    这个函数将会递归搜索文件夹下所有的文件，使用多线程编译，通过增量编译输出到另一个文件夹。
+
+    .Parameter Path
+    输入的文件的目录
+
+    .Parameter OutPath
+    输出的文件的目录
+#>
+function Convert-MarkdownPosterHelper{
+    [OutputType([EightLeggedEssay.Poster[]])]
+    Param(
+        [Parameter(Mandatory = $true)]
+        [System.IO.DirectoryInfo]
+        $Path,
+
+        [Parameter(Mandatory = $true)]
+        [System.IO.DirectoryInfo]
+        $OutPath
+    )
+
+    $result = [System.Collections.Concurrent.ConcurrentBag[EightLeggedEssay.Poster]]::new()
+
+    $data = ConvertTo-ThreadSafeHashtable @{
+        Posters = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
+        Result = $result
+        OriginPath = $Path
+        OutPath = $OutPath
+    }
+
+    foreach($item in (Get-ChildItem -Path $Path)){
+        $data["Posters"].Add($item)
+    }
+
+    $_ = Invoke-ParallelScriptBlock -ScriptBlock {
+        $poster = $null
+        $OutPath = $PassedVariable["OutPath"]
+        $OriginPath = $PassedVariable["OriginPath"]
+        $result = $PassedVariable["Result"]
+
+        while($PassedVariable["Posters"].TryTake([ref] $poster)){
+            $outputPath = ConvertTo-RedirectPath $poster $OriginPath $OutPath
+
+            $outputPath += ".compiled"
+
+            $compiled = Convert-MarkdownPoster -SourcePath $poster -OutputPath $outputPath
+
+            $result.Add($compiled)
+        }
+
+    } -PassedVariable $data
+
+    $result
+}
+
+<#
+    .SYNOPSIS
+    用于获取下一个页面名称的辅助函数。如果当前页面是最后一个页面则返回null。
+    默认格式如：
+    index.html      - 首页
+    2_index.html    - 第二页
+    3_index.html    - 第三页...
+
+    .Parameter page
+    一个包括页面信息的hashtable。要求有以下数据：
+    IsLastPage: 当前页面是否是最后一个页面
+    IsFirstPage: 当前页面是否是第一个页面
+    CurrentPageNumber: 当前页面的页码
+    通常这些数据已经包含在Convert-Paginations的返回值中。
+
+    .Parameter ScriptBlock
+    用于目标索引字符串的函数。参数为一个long类型的页面索引，返回值为字符串。
+    默认返回$index + "_index.html"。
+    注意，参数为“下一页”的索引值，如输入的Page的页面是第三页，那么函数将会获取第四页的索引值（即数字4）
+#>
+function Get-NextPageHelper{
+    [OutputType([string])]
+    Param(
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $true)]
+        [hashtable]
+        $Page,
+
+        [Parameter(Mandatory = $false)]
+        [scriptblock]
+        $ScriptBlock = {
+            [OutputType([string])]
+            param([long]$index)
+            return ($index.ToString() + "_index.html")
+        }
+    )
+    
+    if(-not $Page["IsLastPage"]){
+        return $ScriptBlock.Invoke($Page["CurrentPageNumber"] + 1)
+    }
+    else{
+        return $null
+    }
+}
+
+<#
+    .SYNOPSIS
+    用于获取上一个页面名称的辅助函数。如果当前页面是第一个页面则返回null。
+    默认格式如：
+    index.html      - 首页
+    2_index.html    - 第二页
+    3_index.html    - 第三页...
+
+    .Parameter Page
+    一个包括页面信息的hashtable。要求有以下数据：
+    IsLastPage: 当前页面是否是最后一个页面
+    IsFirstPage: 当前页面是否是第一个页面
+    CurrentPageNumber: 当前页面的页码
+    通常这些数据已经包含在Convert-Paginations的返回值中。
+
+    .Parameter FirstPageIndex
+    第一页的索引。
+    默认为index.html。
+
+    .Parameter ScriptBlock
+    用于获取目标索引字符串的函数，参数为一个long类型的页面索引，返回值为字符串。
+    默认返回$index + "_index.html"。
+    注意，参数为“上一页”的索引值，如输入的Page的页面是第三页，那么函数将会获取第二页的索引值（即数字2）
+#>
+function Get-PreviousPageHelper{
+    [OutputType([string])]
+    Param(
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $true)]
+        [hashtable]
+        $Page,
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $FirstPageIndex = "index.html",
+
+        [Parameter(Mandatory = $false)]
+        [scriptblock]
+        $ScriptBlock = {
+            [OutputType([string])]
+            param([long]$index)
+            return ($index.ToString() + "_index.html")
+        }
+    )
+
+    if(-not $Page["IsFirstPage"]){
+        if(($Page["CurrentPageNumber"] - 1) -eq 1){
+            return $FirstPageIndex
+        }
+        else{
+            return $ScriptBlock.Invoke($Page["CurrentPageNumber"] - 1)
+        }
+    }
+    else{
+        return $null
+    }
+}
+
+<#
+    .SYNOPSIS
+    这个函数用于获取当前页面的字符串索引。格式如
+    index.html
+    2_index.html
+    3_index.html
+
+    .Parameter Page
+    一个包括页面信息的hashtable。要求有以下数据：
+    IsLastPage: 当前页面是否是最后一个页面
+    IsFirstPage: 当前页面是否是第一个页面
+    CurrentPageNumber: 当前页面的页码
+    通常这些数据已经包含在Convert-Paginations的返回值中。
+
+    .Parameter FirstPageIndex
+    第一个页面的索引值，默认为index.html
+
+    .Parameter ScriptBlock
+    用于获取目标索引字符串的函数，参数为一个long类型的页面索引，返回值为字符串。
+    默认返回$index + "_index.html"。
+#>
+function Get-CurrentPageHelper{
+    [OutputType([string])]
+    Param(
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $true)]
+        [hashtable]
+        $Page,
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $FirstPageIndex = "index.html",
+
+        [Parameter(Mandatory = $false)]
+        [scriptblock]
+        $ScriptBlock = {
+            [OutputType([string])]
+            param([long]$index)
+            return ($index.ToString() + "_index.html")
+        }
+    )
+    if($Page["IsFirstPage"]){
+        return $FirstPageIndex
+    }
+    else{
+        return $ScriptBlock.Invoke($Page["CurrentPageNumber"])
+    }
+}
+
 Export-ModuleMember -Function "Convert-URL"
 Export-ModuleMember -Function "ConvertTo-ThreadSafeHashtable"
 Export-ModuleMember -Function "ConvertTo-RedirectPath"
+Export-ModuleMember -Function "Convert-MarkdownPosterHelper"
+Export-ModuleMember -Function "Get-NextPageHelper"
+Export-ModuleMember -Function "Get-PreviousPageHelper"
+Export-ModuleMember -Function "Get-CurrentPageHelper"
