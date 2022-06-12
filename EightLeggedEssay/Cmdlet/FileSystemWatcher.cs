@@ -84,7 +84,7 @@ namespace EightLeggedEssay.Cmdlet
             {
                 FileWatcher.Changed += (obj,param) =>
                 {
-                    var eve = Events.GenerateEvent("FileSystemWarcher.OnChanged",obj,null,new PSObject(param),true,true);
+                    var eve = Events.GenerateEvent("FileSystemWatcher.OnChanged",obj,null,new PSObject(param),true,true);
                     Printer.PutLine("{0}:file system event received:{1}",Thread.CurrentThread.Name,param.FullPath);
                 };
             }
@@ -92,7 +92,7 @@ namespace EightLeggedEssay.Cmdlet
             {
                 FileWatcher.Created += (obj, param) =>
                 {
-                    var eve = Events.GenerateEvent("FileSystemWarcher.OnCreated", obj, null, new PSObject(param), true, true);
+                    var eve = Events.GenerateEvent("FileSystemWatcher.OnCreated", obj, null, new PSObject(param), true, true);
                     Printer.PutLine("{0}:file system event received:{1}", Thread.CurrentThread.Name, param.FullPath);
 
                 };
@@ -101,7 +101,7 @@ namespace EightLeggedEssay.Cmdlet
             {
                 FileWatcher.Deleted += (obj, param) =>
                 {
-                    var eve = Events.GenerateEvent("FileSystemWarcher.OnDeleted", obj, null, new PSObject(param), true, true);
+                    var eve = Events.GenerateEvent("FileSystemWatcher.OnDeleted", obj, null, new PSObject(param), true, true);
                     Printer.PutLine("{0}:file system event received:{1}", Thread.CurrentThread.Name, param.FullPath);
                 };
             }
@@ -109,7 +109,7 @@ namespace EightLeggedEssay.Cmdlet
             {
                 FileWatcher.Renamed += (obj, param) =>
                 {
-                    var eve = Events.GenerateEvent("FileSystemWarcher.OnRenamed", obj, null, new PSObject(param), true, true);
+                    var eve = Events.GenerateEvent("FileSystemWatcher.OnRenamed", obj, null, new PSObject(param), true, true);
                     Printer.PutLine("{0}:file system event received:{1}", Thread.CurrentThread.Name, param.FullPath);
                 };
             }
@@ -117,7 +117,7 @@ namespace EightLeggedEssay.Cmdlet
             {
                 FileWatcher.Error += (obj, param) =>
                 {
-                    var eve = Events.GenerateEvent("FileSystemWarcher.OnError", obj, null, new PSObject(param), true, true);
+                    var eve = Events.GenerateEvent("FileSystemWatcher.OnError", obj, null, new PSObject(param), true, true);
                     Printer.PutLine("{0}:file system event received:{1}", Thread.CurrentThread.Name, param.ToString());
                 };
             }
