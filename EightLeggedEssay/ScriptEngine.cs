@@ -59,7 +59,7 @@ namespace EightLeggedEssay
                 session.Commands.Add(cmdlet);
             }
 
-            AddCmdlet(Cmdlet.GetVariable.CallName, typeof(Cmdlet.GetVariable));
+            AddCmdlet(Cmdlet.Variable.CallName, typeof(Cmdlet.Variable));
 
             AddCmdlet(Cmdlet.NewThreadJobManager.CallName, typeof(Cmdlet.NewThreadJobManager));
             AddCmdlet(Cmdlet.StartThreadJob.CallName, typeof(Cmdlet.StartThreadJob));
@@ -77,6 +77,9 @@ namespace EightLeggedEssay
             AddCmdlet(Cmdlet.AddFileWatcherHandle.CallName, typeof(Cmdlet.AddFileWatcherHandle));
             AddCmdlet(Cmdlet.BeginFileWatcher.CallName, typeof(Cmdlet.BeginFileWatcher));
             AddCmdlet(Cmdlet.EndFileWatcher.CallName, typeof(Cmdlet.EndFileWatcher));
+
+            AddCmdlet(Cmdlet.GetProcessVariable.CallName, typeof(Cmdlet.GetProcessVariable));
+            AddCmdlet(Cmdlet.SetProcessVariable.CallName, typeof(Cmdlet.SetProcessVariable));
 
             // 添加系统模块
             session.ImportPSModule(SystemModulePath);
