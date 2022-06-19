@@ -17,7 +17,7 @@
     设置此选项来关闭增量编译
 
     .Parameter EnableAdvancedExpansion
-    设置此选项来开启markdown高级扩展
+    设置此选项来开启markdown高级扩展.高级扩展见:https://github.com/xoofx/markdig
   
     .Example
     Convert-MarkdownPoster -SourcePath "./content/hello world.md" -OutputPath "./content/output.binary"

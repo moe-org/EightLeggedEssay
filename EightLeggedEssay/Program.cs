@@ -7,6 +7,7 @@
 //
 //===---------------------------------------------------===//
 
+using EightLeggedEssay.Cmdlet.Html;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -76,6 +77,10 @@ namespace EightLeggedEssay
         {
             Console.InputEncoding = Encoding.UTF8;
             Console.OutputEncoding = Encoding.UTF8;
+
+
+            CatalogGetter getter = new();
+            Console.WriteLine("{0}", getter.GetCatalog(File.ReadAllText("test.html")).ToString());
 
             bool repl = false;
 
