@@ -97,9 +97,11 @@ function Convert-ScribanTemplate{
         [hashtable]
         $Attributes = @{})
 
+    New-ParentDirectories -Path $OutputFile
+
     Get-Content -Path $TemplateFile -Raw | 
     Convert-Scriban -Property ($Attributes | Get-ScribanTable) -IncludePath $TemplateFile.DirectoryName | 
-    Out-File $OutputFile -Encoding "UTF-8"
+    Out-File -LiteralPath $OutputFile -Encoding "UTF-8" -NoNewline
 }
 
 <#

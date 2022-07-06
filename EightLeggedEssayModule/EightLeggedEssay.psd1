@@ -83,7 +83,10 @@ FunctionsToExport = @(
     "Convert-MarkdownPosterHelper",
     "Get-NextPageHelper",
     "Get-PreviousPageHelper",
-    "Get-CurrentPageHelper")
+    "Get-CurrentPageHelper",
+    "New-HtmlChecker",
+    "Test-HtmlPostersHelper",
+    "New-ParentDirectories")
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

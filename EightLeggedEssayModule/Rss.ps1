@@ -46,7 +46,7 @@ function New-Rss{
 
 <#
     .SYNOPSIS 
-    添加一篇文章到rss。返回添加的文章。这是一个helper函数。
+    添加一篇文章到rss。返回添加的文章的rss条目。这是一个helper函数。
 
     .Parameter Rss
     要添加到的Rss
@@ -63,6 +63,7 @@ function New-Rss{
     # we can also access rss object directly
     $rss.Auother = "me@kawayi.moe (MingMoe)"
 
+    # add the rss item to the rss object at same time
     $rssPoster = Add-RssPoster -Rss $rss -Poster $poster
 
     # rss item can access directly, too

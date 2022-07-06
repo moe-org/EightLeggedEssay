@@ -21,6 +21,7 @@ using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext
 using System.Reflection.Metadata;
 using System.Xml.Linq;
 using System.Drawing.Drawing2D;
+using EightLeggedEssay.Cmdlet;
 
 namespace EightLeggedEssay
 {
@@ -68,8 +69,8 @@ namespace EightLeggedEssay
             AddCmdlet(Cmdlet.TemplateEngine.CompileScriban.CallName, typeof(Cmdlet.TemplateEngine.CompileScriban));
             AddCmdlet(Cmdlet.TemplateEngine.GetScribanTable.CallName, typeof(Cmdlet.TemplateEngine.GetScribanTable));
 
-            AddCmdlet(Cmdlet.Markdown.CompileMarkdown.CallName, typeof(Cmdlet.Markdown.CompileMarkdown));
-            AddCmdlet(Cmdlet.Markdown.CompileMarkdownPoster.CallName, typeof(Cmdlet.Markdown.CompileMarkdownPoster));
+            AddCmdlet(CompileMarkdown.CallName, typeof(CompileMarkdown));
+            AddCmdlet(CompileMarkdownPoster.CallName, typeof(CompileMarkdownPoster));
 
             AddCmdlet(Cmdlet.StartServer.CallName, typeof(Cmdlet.StartServer));
 
@@ -80,6 +81,8 @@ namespace EightLeggedEssay
 
             AddCmdlet(Cmdlet.GetProcessVariable.CallName, typeof(Cmdlet.GetProcessVariable));
             AddCmdlet(Cmdlet.SetProcessVariable.CallName, typeof(Cmdlet.SetProcessVariable));
+
+            AddCmdlet(Cmdlet.HtmlCheckCmdlet.CallName, typeof(Cmdlet.HtmlCheckCmdlet));
 
             // 添加系统模块
             session.ImportPSModule(SystemModulePath);

@@ -131,7 +131,7 @@ function Convert-MarkdownPosterHelper{
         OutPath = $OutPath
     }
 
-    foreach($item in (Get-ChildItem -Path $Path)){
+    foreach($item in (Get-ChildItem -Path $Path -Recurse -File)){
         $data["Posters"].Add($item)
     }
 
@@ -305,6 +305,87 @@ function Get-CurrentPageHelper{
     }
 }
 
+<#
+    .SYNOPSIS
+    创建一个新的html checker。checker不是线程安全的。
+
+    .PARAMETER CheckerItems
+    要添加的检查器的类型名称列表
+#>
+function New-HtmlChecker{
+    [OutputType([EightLeggedEssay.Html.IHtmlChecker])]
+    Param(
+        [string[]]
+        [Parameter(Mandatory = $true,ValueFromPipeline = $true)]
+        $CheckerItems
+    )
+
+    $types = [System.Collections.Generic.List[EightLeggedEssay.Html.IHtmlCheckerItem]]::new()
+
+    foreach($item in $CheckerItems){
+        $types.Add([System.Activator]::CreateInstance($null,$item,$false,0,$null,$null,$null,$null).Unwrap())
+    }
+
+    return [EightLeggedEssay.Html.HtmlChecker]::new($types)
+}
+
+<#
+    .SYNOPSIS
+    测试html文章，同时把错误输出给用户
+
+    .PARAMETER Posters
+    要测试的文章
+
+    .PARAMETER Checker
+    要使用的检查器
+
+#>
+function Test-HtmlPostersHelper{
+    Param(
+        [array]
+        [Parameter(Mandatory = $true,ValueFromPipeline = $true)]
+        $Posters,
+
+        [EightLeggedEssay.Html.IHtmlChecker]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
+        $Checker = [EightLeggedEssay.Html.HtmlChecker]::new()
+    )
+
+    foreach($post in $Posters){
+        $errors = $null;
+
+        if(([EightLeggedEssay.Html.IHtmlChecker]$Checker).TryGetError($post.Text,([ref] $errors))){
+            Write-Host -Object ("found html post error at " + ($post.SourcePath)) -ForegroundColor Red
+
+            foreach($err in $errors){
+                Write-Host -Object $err -ForegroundColor Red
+            }
+        }
+    }
+}
+
+<#
+    .SYNOPSIS
+    创建一个文件的父目录（如果不存在的话）
+
+    .PARAMETER Path
+    文件的路径
+#>
+function New-ParentDirectories{
+    Param(
+        [Parameter(Mandatory = $true,ValueFromPipeline = $true,Position = 1)]
+        $Path
+    )
+
+    $file = [System.IO.FIleInfo]::new($Path.ToString())
+    
+    if($null -ne $file.Directory -and $null -ne $file.Directory.FullName){
+        if(-not(Test-Path -LiteralPath $file.Directory.FullName -PathType Container)){
+            New-Item -ItemType Directory -Force -Path $file.Directory.FullName
+        }
+    }
+}
+
 Export-ModuleMember -Function "Convert-URL"
 Export-ModuleMember -Function "ConvertTo-ThreadSafeHashtable"
 Export-ModuleMember -Function "ConvertTo-RedirectPath"
@@ -312,3 +393,6 @@ Export-ModuleMember -Function "Convert-MarkdownPosterHelper"
 Export-ModuleMember -Function "Get-NextPageHelper"
 Export-ModuleMember -Function "Get-PreviousPageHelper"
 Export-ModuleMember -Function "Get-CurrentPageHelper"
+Export-ModuleMember -Function "New-HtmlChecker"
+Export-ModuleMember -Function "Test-HtmlPostersHelper"
+Export-ModuleMember -Function "New-ParentDirectories"

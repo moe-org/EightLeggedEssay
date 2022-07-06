@@ -17,7 +17,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace EightLeggedEssay.Cmdlet.Html
+namespace EightLeggedEssay.Html
 {
 
     /// <summary>
@@ -74,7 +74,7 @@ namespace EightLeggedEssay.Cmdlet.Html
         private List<(HtmlNode, int)> LogicLevelOrder = new();
 
         /// <summary>
-        /// 遍历并获取所有html目录项
+        /// 遍历并获取所有html目录项，然后扁平展开
         /// </summary>
         /// <param name="node">目录项</param>
         private void VivitNode(HtmlNode node)
@@ -101,6 +101,7 @@ namespace EightLeggedEssay.Cmdlet.Html
         /// </summary>
         private void Generate(ref int index, CatalogItem parent, ref int level)
         {
+            // 父节点的子节点
             CatalogItem? lastChildren = null;
 
             while (index != LogicLevelOrder.Count)
@@ -113,11 +114,13 @@ namespace EightLeggedEssay.Cmdlet.Html
                     // 继续处理
                     level++;
 
+                    // 如果父节点没有子节点，则将孙节点附加到父节点上
+                    // 否则将孙节点附加到子节点上
                     Generate(ref index, lastChildren ?? parent, ref level);
                 }
                 else if (level == item.Item2)
                 {
-                    // 添加新的同级节点
+                    // 添加父节点的子节点
                     lastChildren = new(item.Item1.InnerText, new());
                     parent.SubItems!.Add(lastChildren);
                     index++;

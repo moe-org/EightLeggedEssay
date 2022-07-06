@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using Markdig;
 
-namespace EightLeggedEssay.Cmdlet.Markdown
+namespace EightLeggedEssay.Compiler
 {
 
     /// <summary>

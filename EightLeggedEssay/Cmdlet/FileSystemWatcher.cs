@@ -31,17 +31,20 @@ namespace EightLeggedEssay.Cmdlet
 
         protected override void ProcessRecord()
         {
-            FileSystemWatcher fileSystem = new(Path ?? throw new ArgumentNullException(nameof(Path)));
-            fileSystem.IncludeSubdirectories = true;
-            fileSystem.NotifyFilter = 
+            FileSystemWatcher fileSystem = new(Path ?? throw new ArgumentNullException(nameof(Path)))
+            {
+                IncludeSubdirectories = true,
+                NotifyFilter =
                                    NotifyFilters.Attributes
                                  | NotifyFilters.CreationTime
                                  | NotifyFilters.DirectoryName
                                  | NotifyFilters.FileName
-                                 | NotifyFilters.LastAccess
+                                 // | NotifyFilters.LastAccess
                                  | NotifyFilters.LastWrite
                                  | NotifyFilters.Security
-                                 | NotifyFilters.Size;
+                                 | NotifyFilters.Size,
+                EnableRaisingEvents = false,
+            };
             WriteObject(fileSystem);
         }
     }

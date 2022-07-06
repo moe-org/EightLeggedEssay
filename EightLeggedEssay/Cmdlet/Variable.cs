@@ -148,8 +148,8 @@ namespace EightLeggedEssay.Cmdlet
         [Parameter(Mandatory = true, ValueFromPipeline = false,Position = 0)]
         public string Name { get; set; } = string.Empty;
 
-        [Parameter(Mandatory = true, ValueFromPipeline = true,Position = 1)]
-        public PSObject? Value { get; set; } = null;
+        [Parameter(Mandatory = true, ValueFromPipeline = false,Position = 1)]
+        public PSObject? InputObject { get; set; } = null;
 
         protected override void ProcessRecord()
         {
@@ -164,9 +164,9 @@ namespace EightLeggedEssay.Cmdlet
                 return;
             }
 
-            object? raw = Value?.BaseObject ?? null;
+            object? raw = InputObject?.BaseObject ?? null;
 
-            Variable.ProcessVariables.AddOrUpdate(Name, Value, (key,value) =>
+            Variable.ProcessVariables.AddOrUpdate(Name, InputObject, (key,value) =>
             {
                 return raw;
             });

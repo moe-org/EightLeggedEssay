@@ -62,6 +62,11 @@ namespace EightLeggedEssay
         public Dictionary<string, JsonNode> Attributes { get; set; } = new();
 
         /// <summary>
+        /// 文章是否有Html错误
+        /// </summary>
+        public bool HasHtmlErrors { get; set; } = false;
+
+        /// <summary>
         /// 文章的运行时数据，不会被增量编译保存，由运行时使用。一旦重启程序将修改将丢失。
         /// </summary>
         public Dictionary<object, object> ExtendedData { get; set; } = new();
@@ -209,6 +214,15 @@ namespace EightLeggedEssay
                 outputStream.Write(BitConverter.GetBytes(textBytes.LongLength));
                 outputStream.Write(textBytes);
 
+                // create parent directories by the way
+                var path = new FileInfo(compiledPath);
+                if(path?.Directory?.FullName is not null)
+                {
+                    if (!Directory.Exists(path.Directory.FullName))
+                    {
+                        Directory.CreateDirectory(path.Directory.FullName);
+                    }
+                }
                 File.WriteAllBytes(compiledPath, outputStream.ToArray());
             }
 

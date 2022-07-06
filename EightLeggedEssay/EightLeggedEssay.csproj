@@ -8,6 +8,7 @@
 		<StartupObject>EightLeggedEssay.Program</StartupObject>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+		<ServerGarbageCollection>true</ServerGarbageCollection>
 	</PropertyGroup>
 
 	<ItemGroup>

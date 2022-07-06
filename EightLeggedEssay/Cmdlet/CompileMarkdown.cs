@@ -14,8 +14,9 @@ using System.Management.Automation;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using EightLeggedEssay.Compiler;
 
-namespace EightLeggedEssay.Cmdlet.Markdown
+namespace EightLeggedEssay.Cmdlet
 {
     /// <summary>
     /// 编译Markdown的Cmdlet
