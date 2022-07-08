@@ -176,7 +176,7 @@ namespace EightLeggedEssay
 
         private string? createLocation;
 
-        private PowerShell pwsh;
+        private readonly PowerShell pwsh;
 
         /// <summary>
         /// 使用EngineName作为name的访问器,只有在open成功的时候此才会被赋值。
@@ -230,6 +230,7 @@ namespace EightLeggedEssay
 
                 engine = ThreadLocalEngine.Value;
 
+                // 初始化引擎
                 if (initNeeded)
                 {
                     pwsh.Streams.Error.DataAdded += (sender, args) =>

@@ -19,7 +19,7 @@ using EightLeggedEssay.Compiler;
 namespace EightLeggedEssay.Cmdlet
 {
     /// <summary>
-    /// 编译Markdown的Cmdlet
+    /// 编译纯Markdown的Cmdlet
     /// </summary>
     [Cmdlet(VerbsData.Convert, "Markdown")]
     [OutputType(typeof(object[]))]
@@ -65,8 +65,8 @@ namespace EightLeggedEssay.Cmdlet
     }
 
     /// <summary>
-    /// 编译Markdown文章。和Compile-Markdown不同，文章包括头部信息，并且来自文件系统。
-    /// 自带增量编译功能
+    /// 解析Markdown文章。
+    /// 和Compile-Markdown不同，这个函数获取一个对象，包含文章头信息，并且不将markdown转换为html。
     /// </summary>
     [Cmdlet(VerbsData.Convert, "PriMarkdownPoster")]
     [OutputType(typeof(MarkdownPoster))]
@@ -92,7 +92,7 @@ namespace EightLeggedEssay.Cmdlet
                 return;
             }
 
-            var output = Markdown.Render(Source);
+            var output = Markdown.ParseMarkdownPoster(Source);
 
             WriteObject(output);
         }

@@ -11,10 +11,12 @@ using Scriban.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace EightLeggedEssay
 {
@@ -34,64 +36,188 @@ namespace EightLeggedEssay
         public string? SourcePath { get; set; } = null;
 
         public string? CompiledPath { get; set; } = null;
+
+        public bool HasHtmlErrors { get; set; } = false;
+
+        public PoasterHeader() { }
+
+        public PoasterHeader(Poster poster)
+        {
+            this.Title = poster.Title;
+            this.CreateTime = poster.CreateTime;
+            this.Strict = poster.Strict;
+            this.Attributes = poster.Attributes;
+            this.SourcePath = poster.SourcePath;
+            this.CompiledPath = poster.CompiledPath;
+            this.HasHtmlErrors = poster.HasHtmlErrors;
+        }
     }
 
     /// <summary>
     /// 这个类表示一篇文章，包括文章的其他信息。这篇文章通常已编译，这个类不能直接序列化或者反序列化。
+    /// 线程不安全!
+    /// 设置field操作会将文章保存。
     /// </summary>
     public class Poster
     {
+        public Poster()
+        {
+
+        }
+
+        public Poster(PoasterHeader header)
+        {
+            this._title = header.Title;
+            this._strict = header.Strict;
+            this._sourcePath = header.SourcePath;
+            this._compiledPath = header.CompiledPath;
+            this._hasHtmlError = header.HasHtmlErrors;
+            this._createTime = header.CreateTime;
+            this._attributes = header.Attributes;
+        }
+
+        private string _title = string.Empty;
+
         /// <summary>
         /// 文章的标题
         /// </summary>
-        public string Title { get; set; } = string.Empty;
+        public string Title
+        {
+            get
+            {
+                return _title;
+            }
+            set
+            {
+                _title = value;
+                Save();
+            }
+        }
+
+        private DateTime _createTime = DateTime.Now;
 
         /// <summary>
         /// 文章创建日期
         /// </summary>
-        public DateTime CreateTime { get; set; } = DateTime.Now;
+        public DateTime CreateTime
+        {
+            get
+            {
+                return _createTime;
+            }
+            set
+            {
+                _createTime = value;
+                Save();
+            }
+        }
+
+        private bool? _strict = null;
 
         /// <summary>
         /// 是否启动严格模式。如果启用则会对文章进行一些额外的检查，如果设置为null则遵循系统设置。
         /// </summary>
-        public bool? Strict { get; set; } = null;
+        public bool? Strict
+        {
+            get
+            {
+                return _strict;
+            }
+            set
+            {
+                _strict = value;
+                Save();
+            }
+        }
+
+        private Dictionary<string, JsonNode> _attributes = new();
 
         /// <summary>
         /// 文章的自定义属性，给用户自行使用。通常保存在文件中。
         /// </summary>
-        public Dictionary<string, JsonNode> Attributes { get; set; } = new();
+        public Dictionary<string, JsonNode> Attributes
+        {
+            get
+            {
+                return _attributes;
+            }
+            set
+            {
+                _attributes = value;
+                Save();
+            }
+        }
+
+        private bool _hasHtmlError = true;
 
         /// <summary>
         /// 文章是否有Html错误
         /// </summary>
-        public bool HasHtmlErrors { get; set; } = false;
+        public bool HasHtmlErrors
+        {
+            get
+            {
+                return _hasHtmlError;
+            }
+            set
+            {
+                _hasHtmlError = value;
+                Save();
+            }
+        }
 
         /// <summary>
         /// 文章的运行时数据，不会被增量编译保存，由运行时使用。一旦重启程序将修改将丢失。
         /// </summary>
         public Dictionary<object, object> ExtendedData { get; set; } = new();
 
+        private string? _sourcePath = null;
+
         /// <summary>
         /// 文章的源路径。如果为null则说明文章并非来源文件系统。
         /// </summary>
-        public string? SourcePath { get; set; } = null;
+        public string? SourcePath
+        {
+            get
+            {
+                return _sourcePath;
+            }
+            set
+            {
+                _sourcePath = value;
+                Save();
+            }
+        }
+
+        private string? _compiledPath = null;
 
         /// <summary>
         /// 文章的输出路径，注意，输出的是半成品，而非文章同模板渲染后的成品。如果为null则说明文章没有输出到文件系统，而是使用内存存储。
         /// </summary>
-        public string? CompiledPath { get; set; } = null;
+        public string? CompiledPath
+        {
+            get
+            {
+                return _compiledPath;
+            }
+            set
+            {
+                _compiledPath = value;
+                Save();
+            }
+        }
 
         /// <summary>
         /// Text的弱引用版本。如果文章输出到文件系统则会启用这个字段，在引用失效的时候将会从文件系统读取。
         /// </summary>
-        private readonly WeakReference<string?> WeakText = new(null);
+        private readonly WeakReference<string?> _weakText = new(null);
 
         /// <summary>
         /// Text的强引用版本。这个字段用于不输出到文件系统的文章使用。
         /// 
         /// 对于不输出到文件系统的文章来说，引用一旦失效将无法再找回，所以使用强引用来储存。
         /// </summary>
-        private string? StrongText = null;
+        private string? _strongText = null;
 
         /// <summary>
         /// 文章经过编译后的数据。
@@ -101,13 +227,13 @@ namespace EightLeggedEssay
         {
             get
             {
-                if (StrongText != null)
+                if (_strongText != null)
                 {
-                    return StrongText;
+                    return _strongText;
                 }
                 else
                 {
-                    if (WeakText.TryGetTarget(out string? target))
+                    if (_weakText.TryGetTarget(out string? target))
                     {
                         return target;
                     }
@@ -117,7 +243,7 @@ namespace EightLeggedEssay
                         target = ParseText(File.ReadAllBytes(CompiledPath
                             ?? throw new InvalidOperationException("try to load memory poster")));
 
-                        WeakText.SetTarget(target);
+                        _weakText.SetTarget(target);
 
                         return target;
                     }
@@ -129,11 +255,12 @@ namespace EightLeggedEssay
         {
             StringBuilder builder = new();
             builder.AppendLine(string.Format("Poster Title:{0}", Title));
-            builder.AppendLine(string.Format("Poster CreateTime:{0}", CreateTime));
+            builder.AppendLine(string.Format("Poster Create Time:{0}", CreateTime));
             builder.AppendLine(string.Format("Poster Strict:{0}", Strict));
             builder.AppendLine(string.Format("Poster Attributes:{0}", Attributes));
             builder.AppendLine(string.Format("Poster Source Path:{0}", SourcePath));
             builder.AppendLine(string.Format("Poster Compiled Path:{0}", CompiledPath));
+            builder.AppendLine(string.Format("Poster Has Html Errors:{0}", HasHtmlErrors));
             builder.AppendLine(string.Format("Poster Text:{0}", Text));
             return builder.ToString();
         }
@@ -170,60 +297,27 @@ namespace EightLeggedEssay
 
             Poster poster = new()
             {
-                Title = title,
-                CreateTime = createTime,
-                Strict = strict,
-                Attributes = attributes,
-                SourcePath = sourcePath,
-                CompiledPath = compiledPath
+                _title = title,
+                _createTime = createTime,
+                _strict = strict,
+                _attributes = attributes,
+                _sourcePath = sourcePath,
+                _compiledPath = compiledPath
             };
 
             // 文章放在内存当中
             if (compiledPath == null)
             {
-                poster.StrongText = text;
+                poster._strongText = text;
             }
             // 文章放在文件系统当中
             else
             {
-                poster.WeakText.SetTarget(text);
+                // 缓存文本内容
+                poster._weakText.SetTarget(text);
 
                 // 写入文件系统
-                PoasterHeader head = new()
-                {
-                    Title = poster.Title,
-                    CreateTime = poster.CreateTime,
-                    Strict = poster.Strict,
-                    Attributes = poster.Attributes,
-                    SourcePath = poster.SourcePath,
-                    CompiledPath = poster.CompiledPath
-                };
-                // 文件布局
-                // [long:头部的长度][bytes:头部的json字符串utf8编码]
-                // [long:文章的长度][bytes:文章的字符串utf8编码]
-
-                var headJson = JsonSerializer.Serialize(head);
-
-                using MemoryStream outputStream = new();
-
-                var headJsonBytes = Encoding.UTF8.GetBytes(headJson);
-                outputStream.Write(BitConverter.GetBytes(headJsonBytes.LongLength));
-                outputStream.Write(headJsonBytes);
-
-                var textBytes = Encoding.UTF8.GetBytes(text);
-                outputStream.Write(BitConverter.GetBytes(textBytes.LongLength));
-                outputStream.Write(textBytes);
-
-                // create parent directories by the way
-                var path = new FileInfo(compiledPath);
-                if(path?.Directory?.FullName is not null)
-                {
-                    if (!Directory.Exists(path.Directory.FullName))
-                    {
-                        Directory.CreateDirectory(path.Directory.FullName);
-                    }
-                }
-                File.WriteAllBytes(compiledPath, outputStream.ToArray());
+                poster.Save();
             }
 
             return poster;
@@ -240,9 +334,9 @@ namespace EightLeggedEssay
 
             using var inputStream = new MemoryStream(data);
 
+            // 跳过头部
             var longBuf = new byte[8];
 
-            // 读取头部
             inputStream.Read(longBuf);
 
             var length = BitConverter.ToInt64(longBuf);
@@ -250,15 +344,7 @@ namespace EightLeggedEssay
             inputStream.Seek(length, SeekOrigin.Current);
 
             // 读取文本
-            inputStream.Read(longBuf);
-
-            length = BitConverter.ToInt64(longBuf);
-
-            var buf = new byte[length];
-
-            inputStream.Read(buf);
-
-            string text = Encoding.UTF8.GetString(buf);
+            string text = Encoding.UTF8.GetString(IOUtility.ReadContentWithLongLngeht(inputStream));
 
             return text;
         }
@@ -274,44 +360,50 @@ namespace EightLeggedEssay
 
             using var inputStream = new MemoryStream(data);
 
-            var longBuf = new byte[8];
+            // 读取
+            string head = Encoding.UTF8.GetString(IOUtility.ReadContentWithLongLngeht(inputStream));
 
-            // 读取头部
-            inputStream.Read(longBuf);
+            string text = Encoding.UTF8.GetString(IOUtility.ReadContentWithLongLngeht(inputStream));
 
-            var length = BitConverter.ToInt64(longBuf);
-
-            var buf = new byte[length];
-
-            inputStream.Read(buf);
-
-            string head = Encoding.UTF8.GetString(buf);
-            // 读取文本
-            inputStream.Read(longBuf);
-
-            length = BitConverter.ToInt64(longBuf);
-
-            buf = new byte[length];
-
-            inputStream.Read(buf);
-
-            string text = Encoding.UTF8.GetString(buf);
             // 解析
             var h = JsonSerializer.Deserialize<PoasterHeader>(head) ?? throw new JsonException("empty json");
 
-            var p = new Poster()
-            {
-                Title = h.Title,
-                CreateTime = h.CreateTime,
-                Attributes = h.Attributes,
-                Strict = h.Strict,
-                SourcePath = h.SourcePath,
-                CompiledPath = h.CompiledPath,
-            };
+            var p = new Poster(h);
 
-            p.WeakText.SetTarget(text);
+            p._weakText.SetTarget(text);
 
             return p;
+        }
+
+        /// <summary>
+        /// 将当前文章信息写入CompiledFile。等价于保存当前文章信息。
+        /// </summary>
+        public void Save()
+        {
+            if (CompiledPath == null)
+            {
+                return;
+            }
+            PoasterHeader head = new(this);
+            // 文件布局
+            // [long:头部的长度][bytes:头部的json字符串utf8编码]
+            // [long:文章的长度][bytes:文章的字符串utf8编码]
+
+            var headJson = JsonSerializer.Serialize(head);
+
+            using MemoryStream outputStream = new();
+
+            var headJsonBytes = Encoding.UTF8.GetBytes(headJson);
+            outputStream.Write(BitConverter.GetBytes(headJsonBytes.LongLength));
+            outputStream.Write(headJsonBytes);
+
+            var textBytes = Encoding.UTF8.GetBytes(Text);
+            outputStream.Write(BitConverter.GetBytes(textBytes.LongLength));
+            outputStream.Write(textBytes);
+
+            // create parent directories by the way
+            IOUtility.CreateParents(CompiledPath);
+            File.WriteAllBytes(CompiledPath, outputStream.ToArray());
         }
     }
 }

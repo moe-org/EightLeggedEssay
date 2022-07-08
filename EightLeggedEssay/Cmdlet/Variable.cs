@@ -27,9 +27,9 @@ namespace EightLeggedEssay.Cmdlet
         /// </summary>
         IsDebugMode,
         /// <summary>
-        /// http服务器地址
+        /// 配置文件的路径
         /// </summary>
-        ServerPath,
+        ConfigurationPath,
         /// <summary>
         /// 配置文件的文本
         /// </summary>
@@ -67,14 +67,14 @@ namespace EightLeggedEssay.Cmdlet
             {
                 switch (variable)
                 {
-                    case SystemVariableEnums.ServerPath:
-                        WriteObject(Program.ServerPath);
-                        return;
                     case SystemVariableEnums.IsDebugMode:
                         WriteObject(Program.DebugMode);
                         return;
                     case SystemVariableEnums.Configuration:
                         WriteObject(Configuration.GlobalConfigurationText);
+                        return;
+                    case SystemVariableEnums.ConfigurationPath:
+                        WriteObject(Program.ConfigurationPath);
                         return;
                 }
             }

@@ -65,9 +65,10 @@ namespace EightLeggedEssay
         private readonly object Locker = new();
 
         /// <summary>
-        /// 初始化一个线程工作其
+        /// 初始化一个线程工作器
         /// </summary>
         /// <param name="count">线程数量</param>
+        /// <param name="name">人类可读的表示符</param>
         public WorkerManager(long count, string name)
         {
             if (count == 0)

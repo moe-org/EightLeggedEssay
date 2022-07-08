@@ -32,7 +32,6 @@ namespace EightLeggedEssay
         {
             Console.WriteLine("usage:EightLeggedEssay [--options] -- [command options]");
             Console.WriteLine("options:");
-            Console.WriteLine("\t--server path  :start a http server in path,default in output path");
             Console.WriteLine("\t--config path  :set the path to load config file");
             Console.WriteLine("\t--system path  :set the path of EightLeggedEssay system module");
             Console.WriteLine("\t--repl         :entry the repl mode");
@@ -40,18 +39,13 @@ namespace EightLeggedEssay
             Console.WriteLine("\t--debug        :entry debug mode");
             Console.WriteLine("\t--new    path  :create a new site in path then exit");
             Console.WriteLine("\t--run  command :execute a command that defined by configuration file");
-            Console.WriteLine("\tthe arguments after `--` will send to the `--run command`");
+            Console.WriteLine("\tthe arguments after `--` will send to the script");
         }
 
         /// <summary>
         /// 是否处在debug模式。这个值在程序正式开始运行后应该不变
         /// </summary>
         public static bool DebugMode { get; private set; } = false;
-
-        /// <summary>
-        /// 服务器地址，null代表不启动服务器
-        /// </summary>
-        public static string? ServerPath { get; set; } = null;
 
         /// <summary>
         /// 配置文件地址
@@ -109,19 +103,6 @@ namespace EightLeggedEssay
                 else if (arg == "--debug")
                 {
                     DebugMode = true;
-                }
-                else if (arg == "--server")
-                {
-                    index++;
-
-                    if (index == args.Length)
-                    {
-                        Printer.ErrLine("Miss option for --server");
-                    }
-                    else
-                    {
-                        ServerPath = args[index];
-                    }
                 }
                 else if (arg == "--config")
                 {
@@ -200,11 +181,11 @@ if($args.Length -ne 1){
 
 $config = Get-EleVariable Configuration | ConvertFrom-Json
 
-$File = [System.IO.Path]::GetFullPath(($config.ContentDirectory) + ""/"" + ($args[0]))
+$File = [System.IO.Path]::GetFullPath(($config.ContentDirectory) + ""/"" + ($args[0])) + "".md""
 
 $NewPosterHeader = @{ }
 
-$NewPosterHeader[""Title""] = $File.Name
+$NewPosterHeader[""Title""] = $args[0]
 $NewPosterHeader[""CreateTime""] = Get-Date
 
 New-Item -Path $File -ItemType file
@@ -256,7 +237,9 @@ New-Item -Path $File -ItemType file
                         var command = Path.GetFullPath(config.BuildScript);
                         Printer.OkLine("execute:{0}", command);
 
-                        engine.Shell.AddCommand(command).Invoke();
+                        engine.Shell.AddCommand(command)
+                            .AddParameters(CommandArguments)
+                            .Invoke();
                     }
                     // 执行命令
                     else if (ExecuteCommand != null)

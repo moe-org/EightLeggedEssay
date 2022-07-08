@@ -376,14 +376,7 @@ function New-ParentDirectories{
         [Parameter(Mandatory = $true,ValueFromPipeline = $true,Position = 1)]
         $Path
     )
-
-    $file = [System.IO.FIleInfo]::new($Path.ToString())
-    
-    if($null -ne $file.Directory -and $null -ne $file.Directory.FullName){
-        if(-not(Test-Path -LiteralPath $file.Directory.FullName -PathType Container)){
-            New-Item -ItemType Directory -Force -Path $file.Directory.FullName
-        }
-    }
+    return [EightLeggedEssay.IOUtility]::CreateParents($Path.ToString());
 }
 
 Export-ModuleMember -Function "Convert-URL"
