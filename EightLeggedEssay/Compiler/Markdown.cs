@@ -27,10 +27,10 @@ namespace EightLeggedEssay.Compiler
     public static class Md4c
     {
         /// <summary>
-        /// 这个注解代表一个markdown不被md4c支持或者支持不完整
+        /// 这个注解代表md4c转换器支持的markdown转换选项。注意，选项可能和markdig的实现不完全一致。
         /// </summary>
         [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-        public class Md4cNotSupported : Attribute
+        public class Md4cSupported : Attribute
         {
         }
 
@@ -119,7 +119,6 @@ namespace EightLeggedEssay.Compiler
             /// <summary>
             /// 是否开启markdig高级扩展（本质上为自动启用一些扩展，具体列表见markdig README）
             /// </summary>
-            [Md4cNotSupported]
             public bool EnableAdvancedExtend { get; set; } = false;
 
             /// <summary>
@@ -127,6 +126,7 @@ namespace EightLeggedEssay.Compiler
             /// or 
             /// MD_FLAG_TASKLISTS
             /// </summary>
+            [Md4cSupported]
             public bool TaskLists { get; set; } = false;
 
             /// <summary>
@@ -134,13 +134,12 @@ namespace EightLeggedEssay.Compiler
             /// or
             /// MD_FLAG_STRIKETHROUGH
             /// </summary>
-            [Md4cNotSupported]
+            [Md4cSupported]
             public bool EmphasisExtra { get; set; } = false;
 
             /// <summary>
             /// https://github.com/xoofx/markdig/blob/master/src/Markdig.Tests/Specs/EmojiSpecs.md
             /// </summary>
-            [Md4cNotSupported]
             public bool EmojiSupport { get; set; } = false;
 
             /// <summary>
@@ -148,19 +147,17 @@ namespace EightLeggedEssay.Compiler
             /// or
             /// MD_FLAG_TABLES
             /// </summary>
-            [Md4cNotSupported]
+            [Md4cSupported]
             public bool PipeTable { get; set; } = false;
 
             /// <summary>
             /// https://github.com/xoofx/markdig/blob/master/src/Markdig.Tests/Specs/GridTableSpecs.md
             /// </summary>
-            [Md4cNotSupported]
             public bool GridTable { get; set; } = false;
 
             /// <summary>
             /// https://github.com/xoofx/markdig/blob/master/src/Markdig.Tests/Specs/HardlineBreakSpecs.md
             /// </summary>
-            [Md4cNotSupported]
             public bool HardLineBreak { get; set; } = false;
 
             /// <summary>
@@ -168,7 +165,7 @@ namespace EightLeggedEssay.Compiler
             /// or
             /// MD_FLAG_LATEXMATHSPANS
             /// </summary>
-            [Md4cNotSupported]
+            [Md4cSupported]
             public bool LatexInline { get; set; } = false;
 
 
