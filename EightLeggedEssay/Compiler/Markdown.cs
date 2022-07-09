@@ -166,8 +166,7 @@ namespace EightLeggedEssay.Compiler
             /// MD_FLAG_LATEXMATHSPANS
             /// </summary>
             [Md4cSupported]
-            public bool LatexInline { get; set; } = false;
-
+            public bool EnableLatexMath { get; set; } = false;
 
             /// <summary>
             /// 尝试使用Md4C作为markdown转换器。这将忽略其他选项。
@@ -196,7 +195,7 @@ namespace EightLeggedEssay.Compiler
                 {
                     parseFlags |= (int)ParseOption.MD_FLAG_TABLES;
                 }
-                if (options.LatexInline)
+                if (options.EnableLatexMath)
                 {
                     parseFlags |= (int)ParseOption.MD_FLAG_LATEXMATHSPANS;
                 }
@@ -222,7 +221,7 @@ namespace EightLeggedEssay.Compiler
             {
                 pipelineBuilder.UseEmphasisExtras();
             }
-            if (options.LatexInline)
+            if (options.EnableLatexMath)
             {
                 pipelineBuilder.UseMathematics();
             }
