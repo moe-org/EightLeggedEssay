@@ -85,18 +85,25 @@ namespace EightLeggedEssay.Compiler
                         {
                             Printer.WarnLine(
                                 $"found MD4C but the version of it is wrong. expect v{Md4cVersion} got v{ver}");
-                            throw new DllNotFoundException();
+                            throw new DllNotFoundException("not found correct dll for md4c");
                         }
 
                         Interlocked.MemoryBarrier();
                         _md4c = 1;
                         Printer.OkLine("found MD4C");
                     }
-                    catch (DllNotFoundException)
+                    catch (Exception ex)
                     {
-                        Interlocked.MemoryBarrier();
-                        _md4c = 2;
-                        Printer.WarnLine("not found MD4C");
+                        if (ex is DllNotFoundException || ex is EntryPointNotFoundException)
+                        {
+                            Interlocked.MemoryBarrier();
+                            _md4c = 2;
+                            Printer.WarnLine("not found MD4C");
+                        }
+                        else
+                        {
+                            throw;
+                        }
                     }
                 }
                 else
