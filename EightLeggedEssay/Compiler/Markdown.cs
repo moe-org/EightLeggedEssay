@@ -27,6 +27,11 @@ namespace EightLeggedEssay.Compiler
     public static class Md4c
     {
         /// <summary>
+        /// md4c使用的版本。如果版本对不上的话MD4C也不会被使用。
+        /// </summary>
+        public const int Md4cVersion = 1;
+
+        /// <summary>
         /// 这个注解代表md4c转换器支持的markdown转换选项。注意，选项可能和markdig的实现不完全一致。
         /// </summary>
         [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
@@ -50,12 +55,16 @@ namespace EightLeggedEssay.Compiler
         [DllImport("MD4CSharp", CharSet = CharSet.Unicode, ExactSpelling = true)]
         private static extern int md4c_csharp_to_html(byte[] utf8, uint size, int parse_flags, int render_flags, getText callback);
 
+        [DllImport("MD4CSharp", CharSet = CharSet.Unicode, ExactSpelling = true)]
+        private static extern int md4c_csharp_get_version();
+
         /// <summary>
         /// 0 stand for not inited.
         /// 1 stand for found.
         /// 2 stand for not found.
+        /// 3 stand for locked
         /// </summary>
-        private static volatile byte _md4c = 0;
+        private static volatile int _md4c = 0;
 
         /// <summary>
         /// Md4c库是否可用状态
@@ -64,16 +73,38 @@ namespace EightLeggedEssay.Compiler
         {
             get
             {
-                if (_md4c == 0)
+                if (Interlocked.CompareExchange(ref _md4c, 3, 0) == 0)
                 {
                     try
                     {
                         Marshal.PrelinkAll(typeof(Md4c));
+
+                        int ver = md4c_csharp_get_version();
+
+                        if (ver != Md4cVersion)
+                        {
+                            Printer.WarnLine(
+                                $"found MD4C but the version of it is wrong. expect v{Md4cVersion} got v{ver}");
+                            throw new DllNotFoundException();
+                        }
+
+                        Interlocked.MemoryBarrier();
                         _md4c = 1;
+                        Printer.OkLine("found MD4C");
                     }
                     catch (DllNotFoundException)
                     {
+                        Interlocked.MemoryBarrier();
                         _md4c = 2;
+                        Printer.WarnLine("not found MD4C");
+                    }
+                }
+                else
+                {
+                    // locked by other thread, wait...
+                    while (_md4c == 3)
+                    {
+                        Interlocked.MemoryBarrier();
                     }
                 }
                 return _md4c == 1;
@@ -86,7 +117,7 @@ namespace EightLeggedEssay.Compiler
         /// <param name="markdown">markdown字符串</param>
         /// <returns>html</returns>
         /// <exception cref="MarkdownParseException">markdown解析错误</exception>
-        public static string Compile(string markdown,int parseFlags)
+        public static string Compile(string markdown, int parseFlags)
         {
             var utf8 = Encoding.UTF8.GetBytes(markdown);
 

@@ -7,7 +7,6 @@
 ```
 usage:EightLeggedEssay [--options] -- [command options]
 options:
-        --server path  :start a http server in path,default in output path
         --config path  :set the path to load config file
         --system path  :set the path of EightLeggedEssay system module
         --repl         :entry the repl mode
@@ -87,8 +86,6 @@ C:.
  - - 命令的映射。`"new": "new.ps1"`代表把`new`这个命令映射到`new.ps1`这个文件里。上文中有例子。
 
 
-值得注意的是，`build-EightLeggedEssay.ps1`文件并不能传递参数，只有命令才能传递参数。
-
 如果你什么都不干，只是运行`EightLeggedEssay`，那么`EightLeggedEssay`就会寻找`build-EightLeggedEssay.ps1`文件，然后执行。
 
 所以如果你对我们的示例项目执行`EightLeggedEssay`，你什么也看不到。
@@ -130,7 +127,9 @@ C:.
    
    `EightLeggedEssay`使用[markdig](https://github.com/xoofx/markdig)作为**内置**的markdown编译器。它符合`CommonMark`标准，并且有许多扩展，而且非常快速。
 
-   同样的，你可以随时更换markdown编译器（如果你能找到一个更适合你的）。事实上，`EightLeggedEssay`并不依赖于任何一个markdown编译器或者什么模板引擎工作，这些东西可以随时更换。即使从源代码中删去对`EightLeggedEssay`也没有任何影响。
+   如果不喜欢，可以看看可能是世界上最快的markdown转换器:(https://github.com/mingmoe/md4c)。但是这个编译器可能会缺少某些第三方扩展。
+
+  你可以随时更换markdown编译器（如果你能找到一个更适合你的）。事实上，`EightLeggedEssay`并不依赖于任何一个markdown编译器或者什么模板引擎工作，这些东西可以随时更换。即使从源代码中删去对`EightLeggedEssay`也没有任何影响。
 
 
 
@@ -146,7 +145,10 @@ C:.
    同样，你可以删去这个命令。你也可以添加任意数量的你所喜欢的命令。
 
 
-对于命令的编写，与`build-EightLeggedEssay.ps1`是相似的（除了命令支持使用参数，要获取参数，使用powershell内置的`$args`变量即可，于正常pwsh脚本中的命令行参数一样）
+对于命令的编写，与`build-EightLeggedEssay.ps1`是相似的
+
+命令行参数(参数`--`后面的所有参数，如`-- a b c`中的`a`,`b`,`c`)通过`$args`变量获得，与PowerShell脚本中的一样。
+
 
 我们将在[深入了解工作原理](advantage.md)中讨论关于`build-EightLeggedEssay.ps1`的编写操作。
 
